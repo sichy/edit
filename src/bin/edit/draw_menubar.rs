@@ -160,6 +160,10 @@ pub fn draw_dialog_about(ctx: &mut Context, state: &mut State) {
             ctx.attr_overflow(Overflow::TruncateTail);
             ctx.attr_position(Position::Center);
 
+            ctx.label("syntax-highlighting", "Syntax Highlighting by Pavel Sich");
+            ctx.attr_overflow(Overflow::TruncateTail);
+            ctx.attr_position(Position::Center);
+
             ctx.block_begin("choices");
             ctx.inherit_focus();
             ctx.attr_padding(Rect::three(1, 2, 0));
