@@ -38,45 +38,50 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
                 ctx.table_next_row();
                 
                 // Title with dash prefix
-                ctx.label("title_prefix", "─ AI Assistant ");
-                ctx.attr_foreground_rgba(0xFF4CAF50); // Green color for title
+                ctx.label("title_prefix1", "──");
+                ctx.label("title_prefix2", " AI Assistant ");
+                ctx.attr_foreground_rgba(0xFFe0e0e0); // Light text
                 
                 // Control buttons
-                ctx.label("bracket_open", "[");
-                ctx.attr_foreground_rgba(0xFFe0e0e0);
-                
                 match state.ai_dock_size {
                     AiDockSize::Minimized => {
-                        if ctx.button("expand_up", "▲", ButtonStyle::default().bracketed(false)) {
+                        if ctx.button("expand_up", "▲", ButtonStyle::default()) {
                             state.ai_dock_size = AiDockSize::Default;
+                            ctx.needs_rerender();
+                        }
+                        if ctx.button("close", "x", ButtonStyle::default()) {
+                            state.ai_dock_visible = false;
+                            state.ai_dock_focused = false;
                             ctx.needs_rerender();
                         }
                     },
                     AiDockSize::Default => {
-                        if ctx.button("minimize_down", "▼", ButtonStyle::default().bracketed(false)) {
+                        if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
                             state.ai_dock_size = AiDockSize::Minimized;
                             ctx.needs_rerender();
                         }
-                        if ctx.button("expand_up", "▲", ButtonStyle::default().bracketed(false)) {
+                        if ctx.button("expand_up", "▲", ButtonStyle::default()) {
                             state.ai_dock_size = AiDockSize::Expanded;
+                            ctx.needs_rerender();
+                        }
+                        if ctx.button("close", "x", ButtonStyle::default()) {
+                            state.ai_dock_visible = false;
+                            state.ai_dock_focused = false;
                             ctx.needs_rerender();
                         }
                     },
                     AiDockSize::Expanded => {
-                        if ctx.button("minimize_down", "▼", ButtonStyle::default().bracketed(false)) {
+                        if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
                             state.ai_dock_size = AiDockSize::Default;
+                            ctx.needs_rerender();
+                        }
+                        if ctx.button("close", "x", ButtonStyle::default()) {
+                            state.ai_dock_visible = false;
+                            state.ai_dock_focused = false;
                             ctx.needs_rerender();
                         }
                     },
                 }
-                
-                ctx.label("bracket_close", "]");
-                ctx.attr_foreground_rgba(0xFFe0e0e0);
-                
-                // Extend with dashes to fill the width
-                ctx.label("title_suffix", " ─────────────────────────────────────────────────────────────────────────────");
-                ctx.attr_foreground_rgba(0xFFe0e0e0);
-                ctx.attr_overflow(Overflow::Clip);
             }
             ctx.table_end();
         }
@@ -118,12 +123,6 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
 
                     if ctx.button("clear", "Clear", ButtonStyle::default()) {
                         state.ai_prompt.clear();
-                        ctx.needs_rerender();
-                    }
-
-                    if ctx.button("close", "Close (Esc)", ButtonStyle::default()) {
-                        state.ai_dock_visible = false;
-                        state.ai_dock_focused = false;
                         ctx.needs_rerender();
                     }
                 }
