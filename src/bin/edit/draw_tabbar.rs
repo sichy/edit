@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.
+// Copyright (c) Pavel Sich.
 // Licensed under the MIT License.
 
 use edit::framebuffer::IndexedColor;
@@ -52,15 +52,15 @@ pub fn draw_tabbar(ctx: &mut Context, state: &mut State) {
             
             // Include close button in tab text if there are multiple tabs
             if tab_infos.len() > 1 {
-                tab_text = format!(" {tab_text}[x] ");
+                tab_text = format!(" {} [x] ", tab_text);
             } else {
-                tab_text = format!(" {tab_text} ");
+                tab_text = format!(" {} ", tab_text);
             }
             
             // Create button ID by mixing the index into the class name
             ctx.next_block_id_mixin(tab_info.index as u64);
             
-            if ctx.button("tab", &tab_text, ButtonStyle::default()) {
+            if ctx.button("tab", &tab_text, ButtonStyle::default().bracketed(false)) {
                 // Switch to this document
                 state.documents.set_active_index(tab_info.index);
                 ctx.needs_rerender();
