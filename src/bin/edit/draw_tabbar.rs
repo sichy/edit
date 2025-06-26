@@ -50,9 +50,9 @@ pub fn draw_tabbar(ctx: &mut Context, state: &mut State) {
                 tab_text.push('*');
             }
             
-            // Include close button in tab text if there are multiple tabs
+            // [TODO] Include close button in tab text if there are multiple tabs
             if tab_infos.len() > 1 {
-                tab_text = format!(" {} [x] ", tab_text);
+                tab_text = format!(" {} ", tab_text);
             } else {
                 tab_text = format!(" {} ", tab_text);
             }
