@@ -161,6 +161,12 @@ pub struct State {
     pub goto_target: String,
     pub goto_invalid: bool,
 
+    // AI Dock
+    pub ai_dock_visible: bool,
+    pub ai_dock_focused: bool,
+    pub ai_prompt: String,
+    pub ai_output: String,
+
     pub osc_title_filename: String,
     pub osc_clipboard_sync: bool,
     pub osc_clipboard_always_send: bool,
@@ -208,6 +214,12 @@ impl State {
             wants_goto: false,
             goto_target: Default::default(),
             goto_invalid: false,
+
+            // AI Dock initialization
+            ai_dock_visible: true,  // Make visible by default for testing
+            ai_dock_focused: false,
+            ai_prompt: Default::default(),
+            ai_output: Default::default(),
 
             osc_title_filename: Default::default(),
             osc_clipboard_sync: false,

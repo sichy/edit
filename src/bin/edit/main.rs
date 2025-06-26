@@ -4,6 +4,7 @@
 #![feature(allocator_api, let_chains, linked_list_cursors, string_from_utf8_lossy_owned)]
 
 mod documents;
+mod draw_ai_dock;
 mod draw_editor;
 mod draw_filepicker;
 mod draw_menubar;
@@ -19,6 +20,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 use std::{env, process};
 
+use draw_ai_dock::*;
 use draw_editor::*;
 use draw_filepicker::*;
 use draw_menubar::*;
@@ -294,6 +296,7 @@ fn draw(ctx: &mut Context, state: &mut State) {
     draw_menubar(ctx, state);
     draw_tabbar(ctx, state);
     draw_editor(ctx, state);
+    draw_ai_dock(ctx, state); // Draw AI dock above status bar
     draw_statusbar(ctx, state);
 
     if state.wants_close {
@@ -400,6 +403,14 @@ fn draw(ctx: &mut Context, state: &mut State) {
             state.documents.set_active_index(7);
         } else if key == kbmod::CTRL | vk::N9 && state.documents.len() > 8 {
             state.documents.set_active_index(8);
+        } else if key == kbmod::CTRL_SHIFT | vk::A {
+            // Toggle AI dock
+            state.ai_dock_visible = !state.ai_dock_visible;
+            if state.ai_dock_visible {
+                state.ai_dock_focused = true;
+            } else {
+                state.ai_dock_focused = false;
+            }
         } else {
             return;
         }
