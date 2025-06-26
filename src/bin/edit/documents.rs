@@ -119,6 +119,46 @@ impl DocumentManager {
         self.list.pop_front();
     }
 
+    /// Get the index of the currently active document
+    pub fn active_index(&self) -> usize {
+        0 // The active document is always at the front (index 0)
+    }
+
+    /// Set the active document by index
+    pub fn set_active_index(&mut self, index: usize) {
+        if index >= self.list.len() {
+            return;
+        }
+        
+        let mut cursor = self.list.cursor_front_mut();
+        for _ in 0..index {
+            cursor.move_next();
+        }
+        
+        if let Some(list) = cursor.remove_current_as_list() {
+            self.list.cursor_front_mut().splice_before(list);
+        }
+    }
+
+    /// Remove document at specific index
+    pub fn remove_at_index(&mut self, index: usize) {
+        if index >= self.list.len() {
+            return;
+        }
+        
+        let mut cursor = self.list.cursor_front_mut();
+        for _ in 0..index {
+            cursor.move_next();
+        }
+        
+        cursor.remove_current();
+    }
+
+    /// Get an iterator over all documents
+    pub fn iter(&self) -> impl Iterator<Item = &Document> {
+        self.list.iter()
+    }
+
     pub fn add_untitled(&mut self) -> apperr::Result<&mut Document> {
         let buffer = Self::create_buffer()?;
         let mut doc = Document {

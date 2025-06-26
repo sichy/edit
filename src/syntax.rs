@@ -85,7 +85,7 @@ impl SyntaxHighlighter {
             ),
             Language::Go => (
                 r"\b(?:func|var|const|type|struct|interface|package|import|for|if|else|switch|case|default|return|break|continue|go|defer|select|chan|map|range|fallthrough)\b",
-                r"\b(?:int|int8|int16|int32|int64|uint|uint8|uint16|uint32|uint64|float32|float64|bool|string|byte|rune|error|interface{})\b",
+                r"\b(?:int|int8|int16|int32|int64|uint|uint8|uint16|uint32|uint64|float32|float64|bool|string|byte|rune|error|interface\{\})\b",
                 r"//.*|/\*[\s\S]*?\*/",
                 r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(",
             ),

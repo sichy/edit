@@ -8,6 +8,7 @@ mod draw_editor;
 mod draw_filepicker;
 mod draw_menubar;
 mod draw_statusbar;
+mod draw_tabbar;
 mod localization;
 mod state;
 
@@ -22,6 +23,7 @@ use draw_editor::*;
 use draw_filepicker::*;
 use draw_menubar::*;
 use draw_statusbar::*;
+use draw_tabbar::*;
 use edit::arena::{self, Arena, ArenaString, scratch_arena};
 use edit::framebuffer::{self, IndexedColor};
 use edit::helpers::{CoordType, KIBI, MEBI, MetricFormatter, Rect, Size};
@@ -290,6 +292,7 @@ fn print_version() {
 
 fn draw(ctx: &mut Context, state: &mut State) {
     draw_menubar(ctx, state);
+    draw_tabbar(ctx, state);
     draw_editor(ctx, state);
     draw_statusbar(ctx, state);
 
@@ -337,6 +340,18 @@ fn draw(ctx: &mut Context, state: &mut State) {
             state.wants_file_picker = StateFilePicker::SaveAs;
         } else if key == kbmod::CTRL | vk::W {
             state.wants_close = true;
+        } else if key == kbmod::ALT | vk::W && state.documents.len() > 1 {
+            // Close current tab with Alt+W (only if multiple tabs open)
+            let active_index = state.documents.active_index();
+            if let Some(doc) = state.documents.active() {
+                if doc.buffer.borrow().is_dirty() {
+                    // If dirty, show close confirmation
+                    state.wants_close = true;
+                } else {
+                    // Close without confirmation
+                    state.documents.remove_at_index(active_index);
+                }
+            }
         } else if key == kbmod::CTRL | vk::P {
             state.wants_go_to_file = true;
         } else if key == kbmod::CTRL | vk::Q {
@@ -353,6 +368,38 @@ fn draw(ctx: &mut Context, state: &mut State) {
             state.wants_search.focus = true;
         } else if key == vk::F3 {
             search_execute(ctx, state, SearchAction::Search);
+        } else if key == kbmod::CTRL | vk::TAB && state.documents.len() > 1 {
+            // Switch to next tab
+            let active_index = state.documents.active_index();
+            let next_index = (active_index + 1) % state.documents.len();
+            state.documents.set_active_index(next_index);
+        } else if key == kbmod::CTRL_SHIFT | vk::TAB && state.documents.len() > 1 {
+            // Switch to previous tab
+            let active_index = state.documents.active_index();
+            let prev_index = if active_index == 0 { 
+                state.documents.len() - 1 
+            } else { 
+                active_index - 1 
+            };
+            state.documents.set_active_index(prev_index);
+        } else if key == kbmod::CTRL | vk::N1 && state.documents.len() > 0 {
+            state.documents.set_active_index(0);
+        } else if key == kbmod::CTRL | vk::N2 && state.documents.len() > 1 {
+            state.documents.set_active_index(1);
+        } else if key == kbmod::CTRL | vk::N3 && state.documents.len() > 2 {
+            state.documents.set_active_index(2);
+        } else if key == kbmod::CTRL | vk::N4 && state.documents.len() > 3 {
+            state.documents.set_active_index(3);
+        } else if key == kbmod::CTRL | vk::N5 && state.documents.len() > 4 {
+            state.documents.set_active_index(4);
+        } else if key == kbmod::CTRL | vk::N6 && state.documents.len() > 5 {
+            state.documents.set_active_index(5);
+        } else if key == kbmod::CTRL | vk::N7 && state.documents.len() > 6 {
+            state.documents.set_active_index(6);
+        } else if key == kbmod::CTRL | vk::N8 && state.documents.len() > 7 {
+            state.documents.set_active_index(7);
+        } else if key == kbmod::CTRL | vk::N9 && state.documents.len() > 8 {
+            state.documents.set_active_index(8);
         } else {
             return;
         }
