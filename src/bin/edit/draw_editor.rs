@@ -21,7 +21,7 @@ pub fn draw_editor(ctx: &mut Context, state: &mut State) {
     // TODO: The layout code should be able to just figure out the height on its own.
     let mut height_reduction = match state.wants_search.kind {
         StateSearchKind::Search => 5,
-        StateSearchKind::Replace => 8,
+        StateSearchKind::Replace => 6,
         _ => 3,
     };
     
