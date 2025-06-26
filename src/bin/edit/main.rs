@@ -296,8 +296,8 @@ fn draw(ctx: &mut Context, state: &mut State) {
     draw_menubar(ctx, state);
     draw_tabbar(ctx, state);
     draw_editor(ctx, state);
-    draw_ai_dock(ctx, state); // Draw AI dock above status bar
     draw_statusbar(ctx, state);
+    draw_ai_dock(ctx, state); // Draw AI dock above status bar
 
     if state.wants_close {
         draw_handle_wants_close(ctx, state);

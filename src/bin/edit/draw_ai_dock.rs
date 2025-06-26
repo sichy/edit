@@ -32,46 +32,48 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
         ctx.block_begin("ai_header");
         ctx.attr_padding(Rect::three(1, 1, 0));
         {
-            // Title on the left
-            ctx.block_begin("ai_title");
-            ctx.attr_position(Position::Left);
+            ctx.table_begin("ai_header_table");
+            ctx.table_set_columns(&[0, COORD_TYPE_SAFE_MAX]);
             {
+                ctx.table_next_row();
+                
+                // Title on the left
                 ctx.label("title", "AI Assistant");
                 ctx.attr_overflow(Overflow::TruncateTail);
                 ctx.attr_foreground_rgba(0xFF4CAF50); // Green color for title
-            }
-            ctx.block_end();
-            
-            // Resize buttons on the right
-            ctx.block_begin("ai_resize_buttons");
-            ctx.attr_position(Position::Right);
-            {
-                match state.ai_dock_size {
-                    AiDockSize::Minimized => {
-                        if ctx.button("expand_up", "▲", ButtonStyle::default()) {
-                            state.ai_dock_size = AiDockSize::Default;
-                            ctx.needs_rerender();
-                        }
-                    },
-                    AiDockSize::Default => {
-                        if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
-                            state.ai_dock_size = AiDockSize::Minimized;
-                            ctx.needs_rerender();
-                        }
-                        if ctx.button("expand_up", "▲", ButtonStyle::default()) {
-                            state.ai_dock_size = AiDockSize::Expanded;
-                            ctx.needs_rerender();
-                        }
-                    },
-                    AiDockSize::Expanded => {
-                        if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
-                            state.ai_dock_size = AiDockSize::Default;
-                            ctx.needs_rerender();
-                        }
-                    },
+
+                // Resize buttons on the right
+                ctx.block_begin("resize_buttons");
+                ctx.attr_position(Position::Right);
+                {
+                    match state.ai_dock_size {
+                        AiDockSize::Minimized => {
+                            if ctx.button("expand_up", "▲", ButtonStyle::default()) {
+                                state.ai_dock_size = AiDockSize::Default;
+                                ctx.needs_rerender();
+                            }
+                        },
+                        AiDockSize::Default => {
+                            if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
+                                state.ai_dock_size = AiDockSize::Minimized;
+                                ctx.needs_rerender();
+                            }
+                            if ctx.button("expand_up", "▲", ButtonStyle::default()) {
+                                state.ai_dock_size = AiDockSize::Expanded;
+                                ctx.needs_rerender();
+                            }
+                        },
+                        AiDockSize::Expanded => {
+                            if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
+                                state.ai_dock_size = AiDockSize::Default;
+                                ctx.needs_rerender();
+                            }
+                        },
+                    }
                 }
+                ctx.block_end();
             }
-            ctx.block_end();
+            ctx.table_end();
         }
         ctx.block_end();
 
@@ -96,26 +98,31 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
             }
             ctx.block_end();
 
-            // Action buttons
+            // Action buttons in a single row
             ctx.block_begin("ai_buttons");
             ctx.attr_padding(Rect::three(1, 1, 0));
-            ctx.attr_position(Position::Left);
             {
-                if ctx.button("send", "Send (Ctrl+Enter)", ButtonStyle::default()) {
-                    // TODO: Handle AI prompt submission
-                    execute_ai_prompt(ctx, state);
-                }
+                ctx.table_begin("button_table");
+                ctx.table_set_cell_gap(Size { width: 1, height: 0 });
+                {
+                    ctx.table_next_row();
+                    
+                    if ctx.button("send", "Send (Ctrl+Enter)", ButtonStyle::default()) {
+                        execute_ai_prompt(ctx, state);
+                    }
 
-                if ctx.button("clear", "Clear", ButtonStyle::default()) {
-                    state.ai_prompt.clear();
-                    ctx.needs_rerender();
-                }
+                    if ctx.button("clear", "Clear", ButtonStyle::default()) {
+                        state.ai_prompt.clear();
+                        ctx.needs_rerender();
+                    }
 
-                if ctx.button("close", "Close (Esc)", ButtonStyle::default()) {
-                    state.ai_dock_visible = false;
-                    state.ai_dock_focused = false;
-                    ctx.needs_rerender();
+                    if ctx.button("close", "Close (Esc)", ButtonStyle::default()) {
+                        state.ai_dock_visible = false;
+                        state.ai_dock_focused = false;
+                        ctx.needs_rerender();
+                    }
                 }
+                ctx.table_end();
             }
             ctx.block_end();
 
