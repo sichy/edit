@@ -70,6 +70,13 @@ impl Document {
     fn update_file_mode(&mut self) {
         let mut tb = self.buffer.borrow_mut();
         tb.set_ruler(if self.filename == "COMMIT_EDITMSG" { 72 } else { 0 });
+        
+        // Set syntax highlighting based on file extension
+        if let Some(path) = &self.path {
+            if let Some(extension) = path.extension().and_then(|e| e.to_str()) {
+                tb.set_syntax_from_extension(extension);
+            }
+        }
     }
 }
 
@@ -165,6 +172,11 @@ impl DocumentManager {
             if let Some(file) = &mut file {
                 let mut tb = buffer.borrow_mut();
                 tb.read_file(file, None)?;
+
+                // Set syntax highlighting based on file extension
+                if let Some(extension) = path.extension().and_then(|e| e.to_str()) {
+                    tb.set_syntax_from_extension(extension);
+                }
 
                 if let Some(goto) = goto
                     && goto != Default::default()
