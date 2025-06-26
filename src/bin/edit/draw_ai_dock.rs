@@ -24,6 +24,7 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
     // Create AI dock area
     ctx.block_begin("ai_dock");
     ctx.attr_intrinsic_size(Size { width: ctx.size().width, height: dock_height });
+    ctx.attr_position(Position::Right); // Position it to not interfere with status bar
     ctx.attr_background_rgba(0xFF2d2d2d); // Dark background
     ctx.attr_foreground_rgba(0xFFe0e0e0); // Light text
     {
