@@ -403,7 +403,7 @@ fn draw(ctx: &mut Context, state: &mut State) {
             state.documents.set_active_index(7);
         } else if key == kbmod::CTRL | vk::N9 && state.documents.len() > 8 {
             state.documents.set_active_index(8);
-        } else if key == kbmod::CTRL_SHIFT | vk::A {
+        } else if key == kbmod::CTRL_ALT | vk::B {
             // Toggle AI dock
             state.ai_dock_visible = !state.ai_dock_visible;
             if state.ai_dock_visible {
