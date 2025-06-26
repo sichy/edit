@@ -120,6 +120,13 @@ pub enum StateEncodingChange {
     Reopen,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum AiDockSize {
+    Minimized,  // Single line with title and up arrow
+    Default,    // Normal size (8 lines)
+    Expanded,   // 50% of screen height
+}
+
 pub struct State {
     pub menubar_color_bg: u32,
     pub menubar_color_fg: u32,
@@ -164,6 +171,7 @@ pub struct State {
     // AI Dock
     pub ai_dock_visible: bool,
     pub ai_dock_focused: bool,
+    pub ai_dock_size: AiDockSize,
     pub ai_prompt: String,
     pub ai_output: String,
 
@@ -218,6 +226,7 @@ impl State {
             // AI Dock initialization
             ai_dock_visible: true,  // Make visible by default for testing
             ai_dock_focused: false,
+            ai_dock_size: AiDockSize::Default,
             ai_prompt: Default::default(),
             ai_output: Default::default(),
 
