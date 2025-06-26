@@ -1972,7 +1972,13 @@ impl TextBuffer {
                                     let top = destination.top + cursor_line.visual_pos.y - origin.y;
                                     Rect { left, top, right: left + 1, bottom: top + 1 }
                                 };
-                                fb.blend_fg(highlight_rect, fb.indexed(syntax_element.color()));
+                                
+                                // Handle both IndexedColor and RGB colors
+                                let color = match syntax_element.color() {
+                                    syntax::SyntaxColor::Indexed(indexed_color) => fb.indexed(indexed_color),
+                                    syntax::SyntaxColor::Rgb(rgb_color) => rgb_color,
+                                };
+                                fb.blend_fg(highlight_rect, color);
                             }
                             
                             line.push(ch);

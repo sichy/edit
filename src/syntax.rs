@@ -6,6 +6,13 @@
 use regex::Regex;
 use crate::framebuffer::IndexedColor;
 
+/// Color type that can be either indexed or RGB
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SyntaxColor {
+    Indexed(IndexedColor),
+    Rgb(u32),
+}
+
 /// Represents different types of syntax elements
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SyntaxElement {
@@ -22,17 +29,30 @@ pub enum SyntaxElement {
 
 impl SyntaxElement {
     /// Returns the color to use for this syntax element
-    pub fn color(self) -> IndexedColor {
+    /// Uses custom RGB colors for strings and functions, IndexedColor for others
+    pub fn color(self) -> SyntaxColor {
         match self {
-            SyntaxElement::Keyword => IndexedColor::Blue,
-            SyntaxElement::Type => IndexedColor::Cyan,
-            SyntaxElement::String => IndexedColor::Green,
-            SyntaxElement::Comment => IndexedColor::BrightBlack,
-            SyntaxElement::Number => IndexedColor::Magenta,
-            SyntaxElement::Operator => IndexedColor::Yellow,
-            SyntaxElement::Function => IndexedColor::BrightBlue,
-            SyntaxElement::Variable => IndexedColor::White,
-            SyntaxElement::None => IndexedColor::Foreground,
+            SyntaxElement::Keyword => SyntaxColor::Indexed(IndexedColor::BrightMagenta),  // Purple for keywords
+            SyntaxElement::Type => SyntaxColor::Indexed(IndexedColor::BrightCyan),        // Bright cyan for types
+            SyntaxElement::String => SyntaxColor::Rgb(0xfffd8273),                       // Custom coral/salmon color
+            SyntaxElement::Comment => SyntaxColor::Indexed(IndexedColor::BrightBlack),    // Gray for comments
+            SyntaxElement::Number => SyntaxColor::Indexed(IndexedColor::BrightYellow),    // Yellow for numbers
+            SyntaxElement::Operator => SyntaxColor::Indexed(IndexedColor::White),         // White for operators
+            SyntaxElement::Function => SyntaxColor::Rgb(0xff75c2b3),                     // Custom teal green color
+            SyntaxElement::Variable => SyntaxColor::Indexed(IndexedColor::Foreground),    // Default foreground
+            SyntaxElement::None => SyntaxColor::Indexed(IndexedColor::Foreground),
+        }
+    }
+
+    /// Legacy method that returns IndexedColor for backward compatibility
+    pub fn indexed_color(self) -> IndexedColor {
+        match self.color() {
+            SyntaxColor::Indexed(color) => color,
+            SyntaxColor::Rgb(_) => match self {
+                SyntaxElement::String => IndexedColor::BrightRed,     // Fallback for strings
+                SyntaxElement::Function => IndexedColor::BrightGreen, // Fallback for functions
+                _ => IndexedColor::Foreground,
+            },
         }
     }
 }
