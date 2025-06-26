@@ -26,52 +26,57 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
     ctx.attr_intrinsic_size(Size { width: ctx.size().width, height: dock_height });
     ctx.attr_background_rgba(0xFF2d2d2d); // Dark background
     ctx.attr_foreground_rgba(0xFFe0e0e0); // Light text
-    ctx.attr_border();
     {
         // Header with title and resize buttons
+        // Draw border-integrated header
         ctx.block_begin("ai_header");
-        ctx.attr_padding(Rect::three(1, 1, 0));
+        ctx.attr_padding(Rect::three(1, 0, 0));
         {
             ctx.table_begin("ai_header_table");
-            ctx.table_set_columns(&[0, COORD_TYPE_SAFE_MAX]);
+            ctx.table_set_cell_gap(Size { width: 0, height: 0 });
             {
                 ctx.table_next_row();
                 
-                // Title on the left
-                ctx.label("title", "AI Assistant");
-                ctx.attr_overflow(Overflow::TruncateTail);
+                // Title with dash prefix
+                ctx.label("title_prefix", "─ AI Assistant ");
                 ctx.attr_foreground_rgba(0xFF4CAF50); // Green color for title
-
-                // Resize buttons on the right
-                ctx.block_begin("resize_buttons");
-                ctx.attr_position(Position::Right);
-                {
-                    match state.ai_dock_size {
-                        AiDockSize::Minimized => {
-                            if ctx.button("expand_up", "▲", ButtonStyle::default()) {
-                                state.ai_dock_size = AiDockSize::Default;
-                                ctx.needs_rerender();
-                            }
-                        },
-                        AiDockSize::Default => {
-                            if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
-                                state.ai_dock_size = AiDockSize::Minimized;
-                                ctx.needs_rerender();
-                            }
-                            if ctx.button("expand_up", "▲", ButtonStyle::default()) {
-                                state.ai_dock_size = AiDockSize::Expanded;
-                                ctx.needs_rerender();
-                            }
-                        },
-                        AiDockSize::Expanded => {
-                            if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
-                                state.ai_dock_size = AiDockSize::Default;
-                                ctx.needs_rerender();
-                            }
-                        },
-                    }
+                
+                // Control buttons
+                ctx.label("bracket_open", "[");
+                ctx.attr_foreground_rgba(0xFFe0e0e0);
+                
+                match state.ai_dock_size {
+                    AiDockSize::Minimized => {
+                        if ctx.button("expand_up", "▲", ButtonStyle::default().bracketed(false)) {
+                            state.ai_dock_size = AiDockSize::Default;
+                            ctx.needs_rerender();
+                        }
+                    },
+                    AiDockSize::Default => {
+                        if ctx.button("minimize_down", "▼", ButtonStyle::default().bracketed(false)) {
+                            state.ai_dock_size = AiDockSize::Minimized;
+                            ctx.needs_rerender();
+                        }
+                        if ctx.button("expand_up", "▲", ButtonStyle::default().bracketed(false)) {
+                            state.ai_dock_size = AiDockSize::Expanded;
+                            ctx.needs_rerender();
+                        }
+                    },
+                    AiDockSize::Expanded => {
+                        if ctx.button("minimize_down", "▼", ButtonStyle::default().bracketed(false)) {
+                            state.ai_dock_size = AiDockSize::Default;
+                            ctx.needs_rerender();
+                        }
+                    },
                 }
-                ctx.block_end();
+                
+                ctx.label("bracket_close", "]");
+                ctx.attr_foreground_rgba(0xFFe0e0e0);
+                
+                // Extend with dashes to fill the width
+                ctx.label("title_suffix", " ─────────────────────────────────────────────────────────────────────────────");
+                ctx.attr_foreground_rgba(0xFFe0e0e0);
+                ctx.attr_overflow(Overflow::Clip);
             }
             ctx.table_end();
         }
