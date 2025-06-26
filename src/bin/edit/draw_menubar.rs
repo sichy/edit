@@ -160,9 +160,25 @@ pub fn draw_dialog_about(ctx: &mut Context, state: &mut State) {
             ctx.attr_overflow(Overflow::TruncateTail);
             ctx.attr_position(Position::Center);
 
-            ctx.label("syntax-highlighting", "Syntax Highlighting by Pavel Sich");
+            ctx.label("empty-line", "");
             ctx.attr_overflow(Overflow::TruncateTail);
             ctx.attr_position(Position::Center);
+
+            ctx.label("pavel-contributions", "Contributions by Pavel Sich:");
+            ctx.attr_overflow(Overflow::TruncateTail);
+            ctx.attr_position(Position::Left);
+
+            ctx.label("pavel-syntax", "• Syntax Highlighting");
+            ctx.attr_overflow(Overflow::TruncateTail);
+            ctx.attr_position(Position::Left);
+
+            ctx.label("pavel-multifile", "• Multiple File Edit with Tab Support");
+            ctx.attr_overflow(Overflow::TruncateTail);
+            ctx.attr_position(Position::Left);
+
+            ctx.label("pavel-theme", "• New Dark Color Theme");
+            ctx.attr_overflow(Overflow::TruncateTail);
+            ctx.attr_position(Position::Left);
 
             ctx.block_begin("choices");
             ctx.inherit_focus();
