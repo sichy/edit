@@ -175,6 +175,14 @@ pub struct State {
     pub ai_prompt: String,
     pub ai_output: String,
 
+    // Folder Browser
+    pub folder_browser_visible: bool,
+    pub folder_browser_width: CoordType,
+    pub folder_browser_current_dir: DisplayablePathBuf,
+    pub folder_browser_current_dir_revision: u64,
+    pub folder_browser_entries: Option<[Vec<DisplayablePathBuf>; 3]>, // ["..", directories, files]
+    pub folder_browser_selected: usize,
+
     pub osc_title_filename: String,
     pub osc_clipboard_sync: bool,
     pub osc_clipboard_always_send: bool,
@@ -229,6 +237,14 @@ impl State {
             ai_dock_size: AiDockSize::Default,
             ai_prompt: Default::default(),
             ai_output: Default::default(),
+
+            // Folder Browser initialization
+            folder_browser_visible: true,
+            folder_browser_width: 30, // 30% of screen width
+            folder_browser_current_dir: DisplayablePathBuf::from_path(std::env::current_dir().unwrap_or_default()),
+            folder_browser_current_dir_revision: 0,
+            folder_browser_entries: None,
+            folder_browser_selected: 0,
 
             osc_title_filename: Default::default(),
             osc_clipboard_sync: false,

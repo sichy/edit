@@ -7,6 +7,7 @@ mod documents;
 mod draw_ai_dock;
 mod draw_editor;
 mod draw_filepicker;
+mod draw_folder_browser;
 mod draw_menubar;
 mod draw_statusbar;
 mod draw_tabbar;
@@ -23,6 +24,7 @@ use std::{env, process};
 use draw_ai_dock::*;
 use draw_editor::*;
 use draw_filepicker::*;
+use draw_folder_browser::*;
 use draw_menubar::*;
 use draw_statusbar::*;
 use draw_tabbar::*;
@@ -295,7 +297,28 @@ fn print_version() {
 fn draw(ctx: &mut Context, state: &mut State) {
     draw_menubar(ctx, state);
     draw_tabbar(ctx, state);
-    draw_editor(ctx, state);
+    
+    if state.folder_browser_visible {
+        // Calculate editor and folder widths for split view
+        let screen_width = ctx.size().width;
+        let editor_width = (screen_width as f32 * 0.7) as CoordType;  // 70% for editor
+        let folder_browser_width = screen_width - editor_width;        // Remaining 30% for folder browser
+        
+        // Update state with calculated widths
+        state.folder_browser_width = folder_browser_width;
+        
+        // Editor and Folder Browser side by side
+        ctx.table_begin("content_layout");
+        ctx.table_set_columns(&[editor_width, folder_browser_width]);
+        ctx.table_next_row();
+        draw_editor(ctx, state);
+        draw_folder_browser(ctx, state);
+        ctx.table_end();
+    } else {
+        // Just editor taking full width
+        draw_editor(ctx, state);
+    }
+    
     draw_statusbar(ctx, state);
     draw_ai_dock(ctx, state); // Draw AI dock above status bar
 
@@ -411,6 +434,9 @@ fn draw(ctx: &mut Context, state: &mut State) {
             } else {
                 state.ai_dock_focused = false;
             }
+        } else if key == vk::F4 {
+            // Toggle folder browser
+            toggle_folder_browser(state);
         } else {
             return;
         }
