@@ -25,20 +25,25 @@ pub fn draw_folder_browser(ctx: &mut Context, state: &mut State) {
     ctx.block_begin("folder_browser");
     ctx.attr_background_rgba(ctx.indexed(IndexedColor::Background));
     ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::Foreground));
-    ctx.attr_border();
+
+    // do not drw border around the browser
+    //ctx.attr_border();
+
     {
         // Header with current directory
         ctx.block_begin("header");
         ctx.attr_background_rgba(ctx.indexed(IndexedColor::BrightBlue));
         ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::BrightWhite));
         ctx.attr_intrinsic_size(Size { width: 0, height: 1 });
-        ctx.attr_padding(Rect::two(1, 0));
+        ctx.attr_padding(Rect::two(0, 1));
         {
             let dir_name = state.folder_browser_current_dir.as_path()
                 .file_name()
                 .and_then(|n| n.to_str())
                 .unwrap_or("Root");
+
             ctx.label("current_dir", &format!("📁 {}", dir_name));
+
             ctx.attr_overflow(Overflow::TruncateTail);
         }
         ctx.block_end();
