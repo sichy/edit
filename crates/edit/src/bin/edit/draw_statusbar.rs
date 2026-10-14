@@ -176,6 +176,13 @@ pub fn draw_statusbar(ctx: &mut Context, state: &mut State) {
             ctx.needs_rerender();
         }
 
+        if let Some(path) = &doc.path {
+            let status = state.lsp.status(path);
+            if !status.is_empty() {
+                ctx.label("lsp", &status);
+            }
+        }
+
         if tb.is_dirty() {
             ctx.label("dirty", "*");
         }

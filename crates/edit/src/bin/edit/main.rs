@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 mod apperr;
+mod completion;
 mod documents;
 mod draw_ai_dock;
 mod draw_editor;
@@ -11,6 +12,7 @@ mod draw_menubar;
 mod draw_statusbar;
 mod draw_tabbar;
 mod localization;
+mod lsp;
 mod settings;
 mod state;
 
@@ -133,7 +135,8 @@ fn run() -> apperr::Result<()> {
         // Process a batch of input.
         {
             let scratch = scratch_arena(None);
-            let read_timeout = vt_parser.read_timeout().min(tui.read_timeout());
+            let read_timeout =
+                vt_parser.read_timeout().min(tui.read_timeout()).min(state.lsp.read_timeout());
             let Some((resize, input)) = sys::read_stdin(&scratch, read_timeout) else {
                 break;
             };

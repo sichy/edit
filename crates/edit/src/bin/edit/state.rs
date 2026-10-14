@@ -13,8 +13,10 @@ use edit::tui::*;
 use edit::{buffer, icu};
 
 use crate::apperr;
+use crate::completion::CompletionState;
 use crate::documents::DocumentManager;
 use crate::localization::*;
+use crate::lsp::LspManager;
 
 #[repr(transparent)]
 pub struct FormatApperr(apperr::Error);
@@ -142,6 +144,8 @@ pub struct State {
     pub menubar_color_fg: StraightRgba,
 
     pub documents: DocumentManager,
+    pub lsp: LspManager,
+    pub completion: CompletionState,
 
     // A ring buffer of the last 10 errors.
     pub error_log: [String; 10],
@@ -208,6 +212,8 @@ impl State {
             menubar_color_fg: StraightRgba::zero(),
 
             documents: Default::default(),
+            lsp: Default::default(),
+            completion: Default::default(),
 
             error_log: [const { String::new() }; 10],
             error_log_index: 0,

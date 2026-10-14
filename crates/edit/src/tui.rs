@@ -2122,6 +2122,23 @@ impl<'a> Context<'a, '_> {
         self.textarea_internal(classname, TextBufferPayload::Textarea(tb));
     }
 
+    /// Returns the screen position of the text cursor of the textarea created last.
+    /// Returns `None` if it hasn't been laid out yet or if the cursor is scrolled out of view.
+    pub fn textarea_cursor_screen_pos(&self) -> Option<Point> {
+        let node = self.tree.last_node.borrow();
+        let NodeContent::Textarea(tc) = &node.content else {
+            return None;
+        };
+        let inner = self.tui.prev_node_map.get(node.id)?.borrow().inner;
+        let tb = tc.buffer.borrow();
+        let pos = tb.cursor_visual_pos();
+        let screen = Point {
+            x: inner.left + tb.margin_width() + pos.x - tc.scroll_offset.x,
+            y: inner.top + pos.y - tc.scroll_offset.y,
+        };
+        inner.contains(screen).then_some(screen)
+    }
+
     fn textarea_internal(&mut self, classname: &'static str, payload: TextBufferPayload) -> bool {
         self.block_begin(classname);
         self.block_end();

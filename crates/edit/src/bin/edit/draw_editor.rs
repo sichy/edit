@@ -7,6 +7,7 @@ use edit::icu;
 use edit::input::{kbmod, vk};
 use edit::tui::*;
 
+use crate::completion::{completion_after_textarea, completion_before_textarea};
 use crate::localization::*;
 use crate::state::*;
 
@@ -32,15 +33,22 @@ pub fn draw_editor(ctx: &mut Context, state: &mut State) {
         };
     }
 
+    let editor_size = Size { width: 0, height: size.height - height_reduction };
+    let snapshot = completion_before_textarea(ctx, state);
+
     if let Some(doc) = state.documents.active() {
         ctx.textarea("textarea", doc.buffer.clone());
         ctx.inherit_focus();
+        ctx.attr_intrinsic_size(editor_size);
+
+        let focused = ctx.is_focused();
+        let cursor_screen = ctx.textarea_cursor_screen_pos();
+        completion_after_textarea(ctx, state, snapshot, focused, cursor_screen);
     } else {
         ctx.block_begin("empty");
         ctx.block_end();
+        ctx.attr_intrinsic_size(editor_size);
     }
-
-    ctx.attr_intrinsic_size(Size { width: 0, height: size.height - height_reduction });
 }
 
 fn draw_search(ctx: &mut Context, state: &mut State) {
