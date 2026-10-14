@@ -6,6 +6,7 @@ use edit::helpers::*;
 use edit::input::{kbmod, vk};
 use edit::tui::*;
 
+use crate::dock::PanelId;
 use crate::localization::*;
 use crate::settings::Settings;
 use crate::state::*;
@@ -142,13 +143,34 @@ fn draw_menu_view(ctx: &mut Context, state: &mut State) {
         }
     }
 
-    // AI Assistant menu item
-    if !state.ai_dock_visible
-        && ctx.menubar_menu_button("Open AI Assistant", 'I', kbmod::CTRL_ALT | vk::B)
+    let windows = &mut state.windows;
+    if ctx.menubar_menu_checkbox("File Browser", 'B', vk::F4, windows.is_open(PanelId::Files)) {
+        windows.toggle(PanelId::Files);
+    }
+    if ctx.menubar_menu_checkbox(
+        "AI Assistant",
+        'I',
+        kbmod::CTRL_ALT | vk::B,
+        windows.is_open(PanelId::Assistant),
+    ) {
+        windows.toggle(PanelId::Assistant);
+    }
+    if ctx.menubar_menu_button("Next Window", 'N', vk::F6) {
+        windows.cycle(true);
+    }
+    if ctx.menubar_menu_button("Zoom Window", 'Z', vk::F5) {
+        windows.toggle_zoom(windows.active());
+    }
+    if ctx.menubar_menu_button("Move/Size Window", 'M', kbmod::CTRL | vk::F5) {
+        windows.start_keyboard_mode();
+    }
+    if windows.active().is_closable()
+        && ctx.menubar_menu_button("Close Window", 'C', kbmod::ALT | vk::F3)
     {
-        state.ai_dock_visible = true;
-        state.ai_dock_size = AiDockSize::Default;
-        ctx.needs_rerender();
+        windows.close(windows.active());
+    }
+    if ctx.menubar_menu_button("Reset Window Layout", 'R', vk::NULL) {
+        windows.reset_layout();
     }
 
     ctx.menubar_menu_end();

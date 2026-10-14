@@ -3,6 +3,7 @@
 
 mod apperr;
 mod completion;
+mod dock;
 mod documents;
 mod draw_ai_dock;
 mod draw_editor;
@@ -11,6 +12,7 @@ mod draw_folder_browser;
 mod draw_menubar;
 mod draw_statusbar;
 mod draw_tabbar;
+mod draw_windows;
 mod localization;
 mod lsp;
 mod settings;
@@ -20,13 +22,11 @@ use std::path::Path;
 use std::time::Duration;
 use std::{env, process};
 
-use draw_ai_dock::*;
 use draw_editor::*;
 use draw_filepicker::*;
-use draw_folder_browser::*;
 use draw_menubar::*;
 use draw_statusbar::*;
-use draw_tabbar::*;
+use draw_windows::*;
 use edit::arena::{self, Arena, arena_format, scratch_arena};
 use edit::collections::{BString, BVec};
 use edit::framebuffer::{self, IndexedColor};
@@ -40,6 +40,8 @@ use edit::{base64, path, sys, unicode};
 use localization::*;
 use state::*;
 
+use crate::completion::draw_completion_popup;
+use crate::dock::PanelId;
 use crate::settings::Settings;
 
 #[cfg(target_pointer_width = "32")]
@@ -184,6 +186,7 @@ fn run() -> apperr::Result<()> {
         }
 
         if state.exit {
+            state.windows.save_if_changed();
             break;
         }
 
@@ -350,32 +353,17 @@ fn print_version() {
 fn draw(tui: &mut Tui, input: Option<input::Input>, state: &mut State) {
     let ctx = &mut tui.create_context(input);
 
+    state.windows.begin_frame(ctx);
+    state.windows.save_if_changed();
+
+    // The windows float above the desktop. They're drawn first,
+    // so that the menus and dialogs drawn after them end up on top.
+    draw_windows(ctx, state);
+    draw_completion_popup(ctx, state);
+
     draw_menubar(ctx, state);
-    draw_tabbar(ctx, state);
-
-    if state.folder_browser_visible {
-        // Calculate editor and folder widths for split view
-        let screen_width = ctx.size().width;
-        let editor_width = (screen_width as f32 * 0.7) as CoordType; // 70% for editor
-        let folder_browser_width = screen_width - editor_width; // Remaining 30% for folder browser
-
-        // Update state with calculated widths
-        state.folder_browser_width = folder_browser_width;
-
-        // Editor and Folder Browser side by side
-        ctx.table_begin("content_layout");
-        ctx.table_set_columns(&[editor_width, folder_browser_width]);
-        ctx.table_next_row();
-        draw_editor(ctx, state);
-        draw_folder_browser(ctx, state);
-        ctx.table_end();
-    } else {
-        // Just editor taking full width
-        draw_editor(ctx, state);
-    }
-
+    draw_desktop(ctx);
     draw_statusbar(ctx, state);
-    draw_ai_dock(ctx, state); // Draw AI dock above status bar
 
     if state.wants_close {
         draw_handle_wants_close(ctx, state);
@@ -482,12 +470,19 @@ fn draw(tui: &mut Tui, input: Option<input::Input>, state: &mut State) {
         } else if key == kbmod::CTRL | vk::N9 && state.documents.len() > 8 {
             state.documents.set_active_index(8);
         } else if key == kbmod::CTRL_ALT | vk::B {
-            // Toggle AI dock
-            state.ai_dock_visible = !state.ai_dock_visible;
-            state.ai_dock_focused = state.ai_dock_visible;
+            state.windows.toggle(PanelId::Assistant);
         } else if key == vk::F4 {
-            // Toggle folder browser
-            toggle_folder_browser(state);
+            state.windows.toggle(PanelId::Files);
+        } else if key == vk::F5 {
+            state.windows.toggle_zoom(state.windows.active());
+        } else if key == kbmod::CTRL | vk::F5 {
+            state.windows.start_keyboard_mode();
+        } else if key == vk::F6 {
+            state.windows.cycle(true);
+        } else if key == kbmod::SHIFT | vk::F6 {
+            state.windows.cycle(false);
+        } else if key == kbmod::ALT | vk::F3 {
+            state.windows.close(state.windows.active());
         } else {
             return;
         }
@@ -496,6 +491,14 @@ fn draw(tui: &mut Tui, input: Option<input::Input>, state: &mut State) {
         ctx.needs_rerender();
         ctx.set_input_consumed();
     }
+}
+
+/// Fills the space between the menubar and the statusbar, behind the windows.
+fn draw_desktop(ctx: &mut Context) {
+    let height = (ctx.size().height - 2).max(0);
+    ctx.block_begin("desktop");
+    ctx.attr_intrinsic_size(Size { width: 0, height });
+    ctx.block_end();
 }
 
 fn draw_handle_wants_exit(_ctx: &mut Context, state: &mut State) {

@@ -14,6 +14,7 @@ use edit::{buffer, icu};
 
 use crate::apperr;
 use crate::completion::CompletionState;
+use crate::dock::WindowManager;
 use crate::documents::DocumentManager;
 use crate::localization::*;
 use crate::lsp::LspManager;
@@ -126,13 +127,6 @@ pub enum StateEncodingChange {
     Reopen,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum AiDockSize {
-    Minimized, // Single line with title and up arrow
-    Default,   // Normal size (8 lines)
-    Expanded,  // 50% of screen height
-}
-
 #[derive(Default)]
 pub struct OscTitleFileStatus {
     pub filename: String,
@@ -184,16 +178,13 @@ pub struct State {
     pub goto_target: String,
     pub goto_invalid: bool,
 
-    // AI Dock
-    pub ai_dock_visible: bool,
-    pub ai_dock_focused: bool,
-    pub ai_dock_size: AiDockSize,
+    pub windows: WindowManager,
+
+    // AI Assistant
     pub ai_prompt: String,
     pub ai_output: String,
 
     // Folder Browser
-    pub folder_browser_visible: bool,
-    pub folder_browser_width: CoordType,
     pub folder_browser_current_dir: DisplayablePathBuf,
     pub folder_browser_current_dir_revision: u64,
     pub folder_browser_entries: Option<[Vec<DisplayablePathBuf>; 3]>, // ["..", directories, files]
@@ -251,16 +242,12 @@ impl State {
             goto_target: Default::default(),
             goto_invalid: false,
 
-            // AI Dock initialization
-            ai_dock_visible: true, // Make visible by default for testing
-            ai_dock_focused: false,
-            ai_dock_size: AiDockSize::Default,
+            windows: WindowManager::load(),
+
             ai_prompt: Default::default(),
             ai_output: Default::default(),
 
             // Folder Browser initialization
-            folder_browser_visible: true,
-            folder_browser_width: 30, // 30% of screen width
             folder_browser_current_dir: DisplayablePathBuf::from_path(
                 std::env::current_dir().unwrap_or_default(),
             ),

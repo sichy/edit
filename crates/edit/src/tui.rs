@@ -885,65 +885,46 @@ impl Tui {
         }
 
         if node.attributes.bordered {
+            let [tl, tr, bl, br, h, v] = if node.attributes.border_double {
+                ['╔', '╗', '╚', '╝', '═', '║']
+            } else {
+                ['┌', '┐', '└', '┘', '─', '│']
+            };
+            let inner_width = (outer_clipped.right - outer_clipped.left - 2) as usize;
+            let scratch = scratch_arena(None);
+
             // ┌────┐
-            {
-                let scratch = scratch_arena(None);
-                let mut fill = BString::empty();
-                fill.push(&*scratch, '┌');
-                fill.push_repeat(
-                    &*scratch,
-                    '─',
-                    (outer_clipped.right - outer_clipped.left - 2) as usize,
-                );
-                fill.push(&*scratch, '┐');
-                self.framebuffer.replace_text(
-                    outer_clipped.top,
-                    outer_clipped.left,
-                    outer_clipped.right,
-                    &fill,
-                );
-            }
+            let mut fill = BString::empty();
+            fill.push(&*scratch, tl);
+            fill.push_repeat(&*scratch, h, inner_width);
+            fill.push(&*scratch, tr);
+            self.framebuffer.replace_text(
+                outer_clipped.top,
+                outer_clipped.left,
+                outer_clipped.right,
+                &fill,
+            );
 
             // │    │
-            {
-                let scratch = scratch_arena(None);
-                let mut fill = BString::empty();
-                fill.push(&*scratch, '│');
-                fill.push_repeat(
-                    &*scratch,
-                    ' ',
-                    (outer_clipped.right - outer_clipped.left - 2) as usize,
-                );
-                fill.push(&*scratch, '│');
-
-                for y in outer_clipped.top + 1..outer_clipped.bottom - 1 {
-                    self.framebuffer.replace_text(
-                        y,
-                        outer_clipped.left,
-                        outer_clipped.right,
-                        &fill,
-                    );
-                }
+            let mut fill = BString::empty();
+            fill.push(&*scratch, v);
+            fill.push_repeat(&*scratch, ' ', inner_width);
+            fill.push(&*scratch, v);
+            for y in outer_clipped.top + 1..outer_clipped.bottom - 1 {
+                self.framebuffer.replace_text(y, outer_clipped.left, outer_clipped.right, &fill);
             }
 
             // └────┘
-            {
-                let scratch = scratch_arena(None);
-                let mut fill = BString::empty();
-                fill.push(&*scratch, '└');
-                fill.push_repeat(
-                    &*scratch,
-                    '─',
-                    (outer_clipped.right - outer_clipped.left - 2) as usize,
-                );
-                fill.push(&*scratch, '┘');
-                self.framebuffer.replace_text(
-                    outer_clipped.bottom - 1,
-                    outer_clipped.left,
-                    outer_clipped.right,
-                    &fill,
-                );
-            }
+            let mut fill = BString::empty();
+            fill.push(&*scratch, bl);
+            fill.push_repeat(&*scratch, h, inner_width);
+            fill.push(&*scratch, br);
+            self.framebuffer.replace_text(
+                outer_clipped.bottom - 1,
+                outer_clipped.left,
+                outer_clipped.right,
+                &fill,
+            );
         }
 
         if node.attributes.float.is_some() {
@@ -1690,6 +1671,13 @@ impl<'a> Context<'a, '_> {
         last_node.attributes.bordered = true;
     }
 
+    /// Gives the current node a double-line border (`╔═╗`).
+    pub fn attr_border_double(&mut self) {
+        let mut last_node = self.tree.last_node.borrow_mut();
+        last_node.attributes.bordered = true;
+        last_node.attributes.border_double = true;
+    }
+
     /// Sets the current node's position inside the parent.
     pub fn attr_position(&mut self, align: Position) {
         let mut last_node = self.tree.last_node.borrow_mut();
@@ -1768,6 +1756,39 @@ impl<'a> Context<'a, '_> {
     pub fn contains_mouse_down(&mut self) -> bool {
         let last_node = self.tree.last_node.borrow();
         self.tui.was_mouse_down_on_subtree(&last_node)
+    }
+
+    /// Returns the current mouse position in screen coordinates.
+    pub fn mouse_position(&self) -> Point {
+        self.tui.mouse_position
+    }
+
+    /// Returns where the current mouse press started, or `Point::MIN` if there is none.
+    pub fn mouse_down_position(&self) -> Point {
+        self.tui.mouse_down_position
+    }
+
+    /// Returns the current mouse button state.
+    pub fn mouse_state(&self) -> InputMouseState {
+        self.tui.mouse_state
+    }
+
+    /// Returns whether the left mouse button moved while being held down.
+    pub fn is_mouse_drag(&self) -> bool {
+        self.tui.mouse_is_drag
+    }
+
+    /// Returns whether any node besides the root has the focus.
+    pub fn is_anything_focused(&self) -> bool {
+        self.tui.focused_node_path.len() > 1
+    }
+
+    /// Returns whether a modal was open during the previous frame.
+    pub fn is_modal_open(&self) -> bool {
+        self.tui
+            .prev_tree
+            .iterate_roots()
+            .any(|root| matches!(root.borrow().content, NodeContent::Modal(_)))
     }
 
     /// Returns whether the current node is focused.
@@ -3431,8 +3452,15 @@ impl<'a> Context<'a, '_> {
     }
 
     fn menubar_shortcut(&mut self, shortcut: InputKey) {
-        let shortcut_letter = shortcut.value() as u8 as char;
-        if shortcut_letter.is_ascii_uppercase() {
+        let key = shortcut.key();
+        let key_name = if (vk::F1.value()..=vk::F12.value()).contains(&key.value()) {
+            Some(arena_format!(self.arena(), "F{}", key.value() - vk::F1.value() + 1))
+        } else {
+            let letter = key.value() as u8 as char;
+            letter.is_ascii_uppercase().then(|| arena_format!(self.arena(), "{letter}"))
+        };
+
+        if let Some(key_name) = key_name {
             let mut shortcut_text = BString::empty();
             if shortcut.modifiers_contains(kbmod::CTRL) {
                 shortcut_text.push_str(self.arena(), self.tui.modifier_translations.ctrl);
@@ -3446,7 +3474,7 @@ impl<'a> Context<'a, '_> {
                 shortcut_text.push_str(self.arena(), self.tui.modifier_translations.shift);
                 shortcut_text.push(self.arena(), '+');
             }
-            shortcut_text.push(self.arena(), shortcut_letter);
+            shortcut_text.push_str(self.arena(), &key_name);
 
             self.label("shortcut", &shortcut_text);
         } else {
@@ -3753,6 +3781,7 @@ struct NodeAttributes {
     fg: StraightRgba,
     reverse: bool,
     bordered: bool,
+    border_double: bool,
     focusable: bool,
     focus_well: bool, // Prevents focus from leaving via Tab
     focus_void: bool, // Prevents focus from entering via Tab

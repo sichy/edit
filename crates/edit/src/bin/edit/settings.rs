@@ -86,8 +86,13 @@ impl Settings {
 }
 
 fn settings_json_path() -> Option<PathBuf> {
+    config_file_path("settings.json")
+}
+
+/// Returns the path of a file in the editor's configuration directory.
+pub fn config_file_path(name: &str) -> Option<PathBuf> {
     let mut config_dir = config_dir()?;
-    config_dir.push("settings.json");
+    config_dir.push(name);
     Some(config_dir)
 }
 

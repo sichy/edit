@@ -386,6 +386,13 @@ impl<'input> Iterator for Stream<'_, '_, 'input> {
                             }
                         }
                         'Z' => return Some(Input::Keyboard(kbmod::SHIFT | vk::TAB)),
+                        // F1-F4 with modifiers, e.g. Alt+F3 is `CSI 1;3 R`.
+                        'P'..='S' => {
+                            let key = vk::F1.value() + csi.final_byte as u32 - 'P' as u32;
+                            return Some(Input::Keyboard(
+                                InputKey::new(key) | Self::parse_modifiers(csi),
+                            ));
+                        }
                         '~' => {
                             const LUT: [u8; 35] = [
                                 0,

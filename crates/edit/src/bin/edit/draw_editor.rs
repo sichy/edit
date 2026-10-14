@@ -8,42 +8,42 @@ use edit::input::{kbmod, vk};
 use edit::tui::*;
 
 use crate::completion::{completion_after_textarea, completion_before_textarea};
+use crate::draw_tabbar::draw_tabbar;
 use crate::localization::*;
 use crate::state::*;
 
-pub fn draw_editor(ctx: &mut Context, state: &mut State) {
+/// Draws the tabs, the search bar and the text area into a window of the given inner `size`.
+pub fn draw_editor(ctx: &mut Context, state: &mut State, size: Size, grab_focus: bool) {
+    let mut height = size.height;
+
+    if state.documents.len() > 1 {
+        draw_tabbar(ctx, state);
+        height -= 1;
+    }
+
     if !matches!(state.wants_search.kind, StateSearchKind::Hidden | StateSearchKind::Disabled) {
         draw_search(ctx, state);
     }
-
-    let size = ctx.size();
-    // TODO: The layout code should be able to just figure out the height on its own.
-    let mut height_reduction = match state.wants_search.kind {
-        StateSearchKind::Search => 5,
-        StateSearchKind::Replace => 6,
-        _ => 3,
+    height -= match state.wants_search.kind {
+        StateSearchKind::Search => 2,
+        StateSearchKind::Replace => 3,
+        _ => 0,
     };
 
-    // Add space for AI dock if visible
-    if state.ai_dock_visible {
-        height_reduction += match state.ai_dock_size {
-            AiDockSize::Minimized => 3,              // Just header and border
-            AiDockSize::Default => 8,                // Normal size
-            AiDockSize::Expanded => size.height / 2, // 50% of screen
-        };
-    }
-
-    let editor_size = Size { width: 0, height: size.height - height_reduction };
+    let editor_size = Size { width: size.width, height: height.max(1) };
     let snapshot = completion_before_textarea(ctx, state);
 
     if let Some(doc) = state.documents.active() {
         ctx.textarea("textarea", doc.buffer.clone());
         ctx.inherit_focus();
         ctx.attr_intrinsic_size(editor_size);
+        if grab_focus {
+            ctx.steal_focus();
+        }
 
         let focused = ctx.is_focused();
         let cursor_screen = ctx.textarea_cursor_screen_pos();
-        completion_after_textarea(ctx, state, snapshot, focused, cursor_screen);
+        completion_after_textarea(state, snapshot, focused, cursor_screen);
     } else {
         ctx.block_begin("empty");
         ctx.block_end();

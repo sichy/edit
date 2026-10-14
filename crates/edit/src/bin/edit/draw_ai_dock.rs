@@ -1,170 +1,76 @@
 // Copyright (c) Pavel Sich.
 // Licensed under the MIT License.
 
-//! AI Dock interface for agentic AI commands
+//! AI Assistant window for agentic AI commands
 
 use edit::helpers::*;
 use edit::input::{kbmod, vk};
 use edit::oklab::StraightRgba;
 use edit::tui::*;
 
+use crate::dock::PanelId;
 use crate::state::*;
 
-pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
-    if !state.ai_dock_visible {
-        return;
-    }
-
-    // Calculate height based on dock size
-    let dock_height = match state.ai_dock_size {
-        AiDockSize::Minimized => 3,                    // Just header and border
-        AiDockSize::Default => 8,                      // Normal size
-        AiDockSize::Expanded => ctx.size().height / 2, // 50% of screen
-    };
-
-    // Create AI dock area
-    ctx.block_begin("ai_dock");
-    ctx.attr_intrinsic_size(Size { width: ctx.size().width, height: dock_height });
-    ctx.attr_position(Position::Right); // Position it to not interfere with status bar
-    ctx.attr_background_rgba(StraightRgba::from_rgba(0x2d2d2dff)); // Dark background
-    ctx.attr_foreground_rgba(StraightRgba::from_rgba(0xe0e0e0ff)); // Light text
+/// Draws the assistant into a window of the given inner `size`.
+pub fn draw_ai_assistant(ctx: &mut Context, state: &mut State, size: Size, grab_focus: bool) {
+    ctx.block_begin("ai_assistant");
+    ctx.attr_intrinsic_size(size);
+    ctx.attr_padding(Rect::two(0, 1));
+    let focused = ctx.contains_focus();
     {
-        // Header with title and resize buttons
-        // Draw border-integrated header
-        ctx.block_begin("ai_header");
+        ctx.label("prompt_label", "Prompt:");
+        ctx.attr_overflow(Overflow::TruncateTail);
+        ctx.attr_foreground_rgba(StraightRgba::from_rgba(0xbbbbbbff)); // Gray label
+
+        ctx.editline("ai_prompt_input", &mut state.ai_prompt);
+        ctx.inherit_focus();
+        ctx.attr_intrinsic_size(Size { width: size.width - 2, height: 1 });
+        if grab_focus {
+            ctx.steal_focus();
+        }
+
+        // Action buttons in a single row
+        ctx.table_begin("button_table");
+        ctx.table_set_cell_gap(Size { width: 1, height: 0 });
         ctx.attr_padding(Rect::three(1, 0, 0));
         {
-            ctx.table_begin("ai_header_table");
-            ctx.table_set_cell_gap(Size { width: 0, height: 0 });
-            {
-                ctx.table_next_row();
+            ctx.table_next_row();
 
-                // Title with dash prefix
-                ctx.label("title_prefix1", "──");
-                ctx.label("title_prefix2", " AI Assistant ");
-                ctx.attr_foreground_rgba(StraightRgba::from_rgba(0xe0e0e0ff)); // Light text
-
-                // Control buttons
-                match state.ai_dock_size {
-                    AiDockSize::Minimized => {
-                        if ctx.button("expand_up", "▲", ButtonStyle::default()) {
-                            state.ai_dock_size = AiDockSize::Default;
-                            ctx.needs_rerender();
-                        }
-                        if ctx.button("close", "x", ButtonStyle::default()) {
-                            state.ai_dock_visible = false;
-                            state.ai_dock_focused = false;
-                            ctx.needs_rerender();
-                        }
-                    }
-                    AiDockSize::Default => {
-                        if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
-                            state.ai_dock_size = AiDockSize::Minimized;
-                            ctx.needs_rerender();
-                        }
-                        if ctx.button("expand_up", "▲", ButtonStyle::default()) {
-                            state.ai_dock_size = AiDockSize::Expanded;
-                            ctx.needs_rerender();
-                        }
-                        if ctx.button("close", "x", ButtonStyle::default()) {
-                            state.ai_dock_visible = false;
-                            state.ai_dock_focused = false;
-                            ctx.needs_rerender();
-                        }
-                    }
-                    AiDockSize::Expanded => {
-                        if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
-                            state.ai_dock_size = AiDockSize::Default;
-                            ctx.needs_rerender();
-                        }
-                        if ctx.button("close", "x", ButtonStyle::default()) {
-                            state.ai_dock_visible = false;
-                            state.ai_dock_focused = false;
-                            ctx.needs_rerender();
-                        }
-                    }
-                }
+            if ctx.button("send", "Send (Ctrl+Enter)", ButtonStyle::default()) {
+                execute_ai_prompt(ctx, state);
             }
-            ctx.table_end();
+
+            if ctx.button("clear", "Clear", ButtonStyle::default()) {
+                state.ai_prompt.clear();
+                ctx.needs_rerender();
+            }
         }
-        ctx.block_end();
+        ctx.table_end();
 
-        // Show contents based on size state
-        if state.ai_dock_size != AiDockSize::Minimized {
-            // Prompt input area
-            ctx.block_begin("ai_prompt_section");
-            ctx.attr_padding(Rect::three(1, 1, 0));
-            {
-                ctx.label("prompt_label", "Prompt:");
-                ctx.attr_overflow(Overflow::TruncateTail);
-                ctx.attr_foreground_rgba(StraightRgba::from_rgba(0xbbbbbbff)); // Gray label
+        if !state.ai_output.is_empty() {
+            ctx.label("output_label", "Output:");
+            ctx.attr_padding(Rect::three(1, 0, 0));
+            ctx.attr_overflow(Overflow::TruncateTail);
+            ctx.attr_foreground_rgba(StraightRgba::from_rgba(0xbbbbbbff)); // Gray label
 
-                // Text input for AI prompt using editline
-                if ctx.editline("ai_prompt_input", &mut state.ai_prompt) {
-                    // Handle input changes if needed
-                }
-
-                if state.ai_dock_focused {
-                    ctx.inherit_focus();
-                }
-            }
-            ctx.block_end();
-
-            // Action buttons in a single row
-            ctx.block_begin("ai_buttons");
-            ctx.attr_padding(Rect::three(1, 1, 0));
-            {
-                ctx.table_begin("button_table");
-                ctx.table_set_cell_gap(Size { width: 1, height: 0 });
-                {
-                    ctx.table_next_row();
-
-                    if ctx.button("send", "Send (Ctrl+Enter)", ButtonStyle::default()) {
-                        execute_ai_prompt(ctx, state);
-                    }
-
-                    if ctx.button("clear", "Clear", ButtonStyle::default()) {
-                        state.ai_prompt.clear();
-                        ctx.needs_rerender();
-                    }
-                }
-                ctx.table_end();
-            }
-            ctx.block_end();
-
-            // Output area (if there's output)
-            if !state.ai_output.is_empty() {
-                ctx.block_begin("ai_output_section");
-                ctx.attr_padding(Rect::three(1, 1, 0));
-                {
-                    ctx.label("output_label", "Output:");
-                    ctx.attr_overflow(Overflow::TruncateTail);
-                    ctx.attr_foreground_rgba(StraightRgba::from_rgba(0xbbbbbbff)); // Gray label
-
-                    ctx.label("ai_output", &state.ai_output);
-                    ctx.attr_overflow(Overflow::TruncateTail);
-                    ctx.attr_foreground_rgba(StraightRgba::from_rgba(0x90ee90ff)); // Light green for output
-                }
-                ctx.block_end();
-            }
+            ctx.label("ai_output", &state.ai_output);
+            ctx.attr_overflow(Overflow::TruncateTail);
+            ctx.attr_foreground_rgba(StraightRgba::from_rgba(0x90ee90ff)); // Light green for output
         }
     }
     ctx.block_end();
 
-    // Handle keyboard input when AI dock is focused
-    if state.ai_dock_focused
-        && let Some(key) = ctx.keyboard_input()
-    {
+    if focused && let Some(key) = ctx.keyboard_input() {
         if key == vk::ESCAPE {
-            state.ai_dock_visible = false;
-            state.ai_dock_focused = false;
-            ctx.needs_rerender();
-            ctx.set_input_consumed();
+            // Return to the editor, like leaving a dialog.
+            state.windows.focus(PanelId::Editor);
         } else if key == kbmod::CTRL | vk::RETURN {
             execute_ai_prompt(ctx, state);
-            ctx.needs_rerender();
-            ctx.set_input_consumed();
+        } else {
+            return;
         }
+        ctx.needs_rerender();
+        ctx.set_input_consumed();
     }
 }
 

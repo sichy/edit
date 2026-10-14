@@ -4,56 +4,28 @@
 use std::cmp::Ordering;
 use std::fs;
 
-use edit::framebuffer::IndexedColor;
 use edit::helpers::*;
 use edit::icu;
 use edit::input::{kbmod, vk};
 use edit::tui::*;
 
+use crate::dock::PanelId;
 use crate::state::*;
 
-pub fn draw_folder_browser(ctx: &mut Context, state: &mut State) {
-    // Only show folder browser if visible
-    if !state.folder_browser_visible {
-        return;
-    }
-
+/// Draws the directory listing into a window of the given inner `size`.
+pub fn draw_folder_browser(ctx: &mut Context, state: &mut State, size: Size, grab_focus: bool) {
     if state.folder_browser_entries.is_none() {
         refresh_folder_browser(state);
     }
 
-    ctx.block_begin("folder_browser");
-    ctx.attr_background_rgba(ctx.indexed(IndexedColor::Background));
-    ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::Foreground));
-
-    // do not drw border around the browser
-    //ctx.attr_border();
-
+    ctx.scrollarea_begin("folder_browser", size);
     {
-        // Header with current directory
-        ctx.block_begin("header");
-        ctx.attr_background_rgba(ctx.indexed(IndexedColor::BrightBlue));
-        ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::BrightWhite));
-        ctx.attr_intrinsic_size(Size { width: 0, height: 1 });
-        ctx.attr_padding(Rect::two(0, 1));
-        {
-            let dir_name = state
-                .folder_browser_current_dir
-                .as_path()
-                .file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or("Root");
-
-            ctx.label("current_dir", &format!("📁 {}", dir_name));
-
-            ctx.attr_overflow(Overflow::TruncateTail);
-        }
-        ctx.block_end();
-
-        // File list using same structure as file picker
         ctx.next_block_id_mixin(state.folder_browser_current_dir_revision);
         ctx.list_begin("files");
         ctx.inherit_focus();
+        if grab_focus {
+            ctx.steal_focus();
+        }
 
         let mut activated = false;
         let mut selected_entry = None;
@@ -98,11 +70,12 @@ pub fn draw_folder_browser(ctx: &mut Context, state: &mut State) {
             if let Err(err) = state.documents.add_file_path(&path) {
                 error_log_add(ctx, state, err);
             } else {
+                state.windows.focus(PanelId::Editor);
                 ctx.needs_rerender();
             }
         }
     }
-    ctx.block_end();
+    ctx.scrollarea_end();
 }
 
 // Returns Some(path) if the path refers to a file
@@ -197,11 +170,4 @@ fn refresh_folder_browser(state: &mut State) {
     }
 
     state.folder_browser_entries = Some(dirs_files);
-}
-
-pub fn toggle_folder_browser(state: &mut State) {
-    state.folder_browser_visible = !state.folder_browser_visible;
-    if state.folder_browser_visible && state.folder_browser_entries.is_none() {
-        refresh_folder_browser(state);
-    }
 }

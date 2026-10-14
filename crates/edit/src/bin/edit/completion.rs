@@ -40,6 +40,8 @@ pub struct CompletionState {
     scroll: usize,
     /// Whether the textarea had the focus during the last frame.
     textarea_focused: bool,
+    /// Where the popup goes during this frame. See [`draw_completion_popup`].
+    popup_anchor: Option<Point>,
 }
 
 impl CompletionState {
@@ -48,7 +50,11 @@ impl CompletionState {
     }
 
     fn close(&mut self) {
-        *self = Self { textarea_focused: self.textarea_focused, ..Default::default() };
+        *self = Self {
+            textarea_focused: self.textarea_focused,
+            popup_anchor: self.popup_anchor,
+            ..Default::default()
+        };
     }
 
     fn receive(&mut self, list: CompletionList) {
@@ -135,7 +141,6 @@ pub fn completion_before_textarea(
 
 /// Must be called right after the textarea was created.
 pub fn completion_after_textarea(
-    ctx: &mut Context,
     state: &mut State,
     before: Option<TextareaSnapshot>,
     focused: bool,
@@ -210,8 +215,13 @@ pub fn completion_after_textarea(
     }
 
     drop(tb);
-    if state.completion.is_visible()
-        && let Some(cursor_screen) = cursor_screen
+    state.completion.popup_anchor = cursor_screen;
+}
+
+/// Draws the popup on top of all windows. Must be called after all windows were drawn.
+pub fn draw_completion_popup(ctx: &mut Context, state: &mut State) {
+    if let Some(cursor_screen) = state.completion.popup_anchor.take()
+        && state.completion.is_visible()
     {
         draw_popup(ctx, &state.completion, cursor_screen);
     }
