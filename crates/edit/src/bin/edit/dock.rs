@@ -24,6 +24,7 @@ const LAYOUT_FILE_NAME: &str = "layout.json";
 /// How much of the desktop a window takes up when it gets docked to a screen edge.
 const EDGE_DOCK_FRACTION: f32 = 0.3;
 /// How close to a docked window's border a drop must be to dock next to it.
+/// Drops further inside swap the two windows.
 const SIDE_ZONE_FRACTION: f32 = 0.25;
 const DOUBLE_CLICK_TIME: Duration = Duration::from_millis(500);
 
@@ -235,6 +236,19 @@ impl DockNode {
             DockNode::Split(split) => {
                 split.first.dock_next_to(target, new, side)
                     || split.second.dock_next_to(target, new, side)
+            }
+        }
+    }
+
+    /// Exchanges the positions of the panels `a` and `b`.
+    fn swap_panels(&mut self, a: PanelId, b: PanelId) {
+        match self {
+            DockNode::Panel(p) if *p == a => *p = b,
+            DockNode::Panel(p) if *p == b => *p = a,
+            DockNode::Panel(_) => {}
+            DockNode::Split(split) => {
+                split.first.swap_panels(a, b);
+                split.second.swap_panels(a, b);
             }
         }
     }
@@ -491,7 +505,11 @@ struct Splitter {
 enum DropTarget {
     Edge(Side),
     Panel(PanelId, Side),
+    /// Trade places with another docked window.
+    Swap(PanelId),
     Float(Rect),
+    /// Leave the window where it is.
+    Stay,
 }
 
 struct MoveDrag {
@@ -767,6 +785,14 @@ impl WindowManager {
     }
 
     fn dock(&mut self, panel: PanelId, target: DropTarget) {
+        match target {
+            DropTarget::Stay => return,
+            DropTarget::Swap(other) => {
+                self.swap(panel, other);
+                return;
+            }
+            _ => {}
+        }
         self.remove(panel);
         let target = match target {
             DropTarget::Panel(other, side)
@@ -793,11 +819,51 @@ impl WindowManager {
             Some(DropTarget::Float(rect)) => {
                 self.layout.floating.push(FloatingWindow { panel, rect });
             }
-            Some(DropTarget::Panel(..)) | None => {}
+            Some(DropTarget::Panel(..) | DropTarget::Swap(_) | DropTarget::Stay) | None => {}
         }
         self.layout.zoomed = None;
         self.layout_changed = true;
         self.focus(panel);
+    }
+
+    /// `panel` takes the place of the docked window `other`, and `other` takes the place of
+    /// `panel`. If `panel` was floating, `other` floats where `panel` was.
+    fn swap(&mut self, panel: PanelId, other: PanelId) {
+        let Some(root) = &mut self.layout.docked else {
+            return;
+        };
+        if let Some(window) = self.layout.floating.iter_mut().find(|w| w.panel == panel) {
+            window.panel = other;
+            root.swap_panels(other, panel);
+        } else {
+            root.swap_panels(panel, other);
+        }
+        self.layout.zoomed = None;
+        self.layout_changed = true;
+        self.focus(panel);
+    }
+
+    pub fn is_floating(&self, panel: PanelId) -> bool {
+        self.layout.floating.iter().any(|w| w.panel == panel)
+    }
+
+    /// Undocks a docked window into the middle of the desktop, or docks a floating one.
+    pub fn toggle_float(&mut self, panel: PanelId) {
+        if !self.is_open(panel) {
+            return;
+        }
+        if self.is_floating(panel) {
+            self.dock(panel, DropTarget::Edge(panel.default_dock_side()));
+            return;
+        }
+        let work = self.work_area;
+        let min = panel.min_size();
+        let width = (work.width() * 3 / 5).max(min.width);
+        let height = (work.height() * 3 / 5).max(min.height);
+        let left = work.left + (work.width() - width) / 2;
+        let top = work.top + (work.height() - height) / 2;
+        let rect = Rect { left, top, right: left + width, bottom: top + height };
+        self.dock(panel, DropTarget::Float(rect));
     }
 
     fn handle_keyboard_mode(&mut self, ctx: &mut Context) -> bool {
@@ -1053,10 +1119,11 @@ impl WindowManager {
             window.rect = float_rect;
         }
 
-        m.target = self.drop_target(m.panel, pos, float_rect);
+        m.target = self.drop_target(m.panel, m.floating, pos, float_rect);
         self.preview = match m.target {
             // A floating window that keeps floating is moved live and needs no preview.
             DropTarget::Float(_) if m.floating => None,
+            DropTarget::Stay => None,
             target => Some(self.target_rect(m.panel, target)),
         };
         true
@@ -1115,7 +1182,13 @@ impl WindowManager {
         true
     }
 
-    fn drop_target(&self, moving: PanelId, pos: Point, float_rect: Rect) -> DropTarget {
+    fn drop_target(
+        &self,
+        moving: PanelId,
+        floating: bool,
+        pos: Point,
+        float_rect: Rect,
+    ) -> DropTarget {
         let work = self.work_area;
         if pos.x <= work.left {
             return DropTarget::Edge(Side::Left);
@@ -1146,9 +1219,14 @@ impl WindowManager {
             if distance < SIDE_ZONE_FRACTION {
                 return DropTarget::Panel(frame.panel, side);
             }
+            // Floating windows are moved by dragging them, so they can only swap via their sides.
+            if !floating {
+                return DropTarget::Swap(frame.panel);
+            }
         }
 
-        DropTarget::Float(float_rect)
+        // Docked windows are turned into floating ones via the View menu, not by dragging.
+        if floating { DropTarget::Float(float_rect) } else { DropTarget::Stay }
     }
 
     fn target_rect(&self, panel: PanelId, target: DropTarget) -> Rect {
@@ -1169,7 +1247,9 @@ impl WindowManager {
                 }
                 None => self.work_area,
             },
+            DropTarget::Swap(other) => self.frame(other).map_or(self.work_area, |f| f.rect),
             DropTarget::Float(rect) => rect,
+            DropTarget::Stay => Rect::default(),
         }
     }
 }
@@ -1274,6 +1354,59 @@ mod tests {
         assert_eq!(assistant.rect.right, editor.rect.left);
         assert_eq!(assistant.rect.top, editor.rect.top);
         assert_eq!(assistant.rect.bottom, editor.rect.bottom);
+    }
+
+    #[test]
+    fn test_swap_docked_windows() {
+        let mut wm = manager(Layout::default());
+        let editor = wm.frame(PanelId::Editor).unwrap().rect;
+        let assistant = wm.frame(PanelId::Assistant).unwrap().rect;
+
+        let center =
+            Point { x: editor.left + editor.width() / 2, y: editor.top + editor.height() / 2 };
+        let target = wm.drop_target(PanelId::Assistant, false, center, Rect::default());
+        assert_eq!(target, DropTarget::Swap(PanelId::Editor));
+
+        wm.dock(PanelId::Assistant, target);
+        wm.compute_frames();
+        assert_eq!(wm.frame(PanelId::Assistant).unwrap().rect, editor);
+        assert_eq!(wm.frame(PanelId::Editor).unwrap().rect, assistant);
+    }
+
+    #[test]
+    fn test_swap_floating_window() {
+        let mut wm = manager(Layout::default());
+        let files = wm.frame(PanelId::Files).unwrap().rect;
+        wm.toggle_float(PanelId::Assistant);
+        wm.compute_frames();
+        let floating = wm.frame(PanelId::Assistant).unwrap().rect;
+
+        wm.dock(PanelId::Assistant, DropTarget::Swap(PanelId::Files));
+        wm.compute_frames();
+        let new_files = wm.frame(PanelId::Files).unwrap();
+        assert!(new_files.floating);
+        assert_eq!(new_files.rect, floating);
+        assert!(!wm.is_floating(PanelId::Assistant));
+        assert_eq!(
+            wm.frame(PanelId::Editor).unwrap().rect.right,
+            wm.frame(PanelId::Assistant).unwrap().rect.left
+        );
+        assert_eq!(wm.frame(PanelId::Assistant).unwrap().rect.top, files.top);
+    }
+
+    #[test]
+    fn test_docked_window_dropped_on_itself_stays() {
+        let wm = manager(Layout::default());
+        let editor = wm.frame(PanelId::Editor).unwrap().rect;
+        let center = Point { x: editor.left + 10, y: editor.top + 5 };
+        assert_eq!(
+            wm.drop_target(PanelId::Editor, false, center, Rect::default()),
+            DropTarget::Stay
+        );
+        assert!(matches!(
+            wm.drop_target(PanelId::Editor, true, center, editor),
+            DropTarget::Float(_)
+        ));
     }
 
     #[test]

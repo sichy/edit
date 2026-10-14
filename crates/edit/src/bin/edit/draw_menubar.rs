@@ -158,6 +158,11 @@ fn draw_menu_view(ctx: &mut Context, state: &mut State) {
     if ctx.menubar_menu_button("Next Window", 'N', vk::F6) {
         windows.cycle(true);
     }
+    let float_label =
+        if windows.is_floating(windows.active()) { "Dock Window" } else { "Float Window" };
+    if ctx.menubar_menu_button(float_label, 'O', vk::NULL) {
+        windows.toggle_float(windows.active());
+    }
     if ctx.menubar_menu_button("Zoom Window", 'Z', vk::F5) {
         windows.toggle_zoom(windows.active());
     }
