@@ -1007,6 +1007,18 @@ impl Tui {
                     tc.scroll_offset_x_max = res.visual_pos_x_max;
                 }
 
+                if !tc.placeholder.is_empty() && tb.text_length() == 0 {
+                    let line = Rect { bottom: destination.top + 1, ..destination };
+                    self.framebuffer.replace_text(
+                        line.top,
+                        line.left,
+                        line.right,
+                        tc.placeholder.as_str(),
+                    );
+                    let dim = self.framebuffer.indexed(IndexedColor::BrightBlack);
+                    self.framebuffer.blend_fg(line, dim);
+                }
+
                 if !tc.single_line {
                     // Render the scrollbar.
                     let track = Rect {
@@ -1015,11 +1027,16 @@ impl Tui {
                         right: inner_clipped.right,
                         bottom: inner_clipped.bottom,
                     };
+                    let mut content_height = tb.visual_line_count();
+                    if !tc.fit_height {
+                        // Allow scrolling the last line up to the top.
+                        content_height += inner.height() - 1;
+                    }
                     tc.thumb_height = self.framebuffer.draw_scrollbar(
                         inner_clipped,
                         track,
                         tc.scroll_offset.y,
-                        tb.visual_line_count() + inner.height() - 1,
+                        content_height,
                     );
                 }
             }
@@ -2139,6 +2156,35 @@ impl<'a> Context<'a, '_> {
         self.textarea_internal(classname, TextBufferPayload::Editline(text))
     }
 
+    /// Sets the hint text that the last [`Context::editline()`] or
+    /// [`Context::textarea()`] shows while it's empty.
+    pub fn attr_placeholder(&mut self, text: &str) {
+        let mut last_node = self.tree.last_node.borrow_mut();
+        if let NodeContent::Textarea(tc) = &mut last_node.content {
+            tc.placeholder.push_str(self.arena(), text);
+        } else {
+            debug_assert!(false);
+        }
+    }
+
+    /// Sizes the last [`Context::textarea()`] to fit its contents, from 1 up to `max_lines`.
+    /// Unlike in the editor, it can't be scrolled past its last line. Returns the new height.
+    pub fn attr_fit_height(&mut self, max_lines: CoordType) -> CoordType {
+        let mut last_node = self.tree.last_node.borrow_mut();
+        let last_node = &mut *last_node;
+        let NodeContent::Textarea(tc) = &mut last_node.content else {
+            debug_assert!(false);
+            return 0;
+        };
+        let lines = tc.buffer.borrow().visual_line_count();
+        let height = lines.clamp(1, max_lines.max(1));
+        tc.scroll_offset.y = tc.scroll_offset.y.min(lines - height).max(0);
+        tc.fit_height = true;
+        last_node.intrinsic_size.height = height;
+        last_node.intrinsic_size_set = true;
+        height
+    }
+
     /// Creates a text area.
     pub fn textarea(&mut self, classname: &'static str, tb: RcTextBuffer) {
         self.textarea_internal(classname, TextBufferPayload::Textarea(tb));
@@ -2212,6 +2258,8 @@ impl<'a> Context<'a, '_> {
             preferred_column: 0,
             single_line,
             has_focus: self.tui.is_node_focused(node.id),
+            placeholder: BString::empty(),
+            fit_height: false,
         });
 
         let content = match node.content {
@@ -3831,6 +3879,10 @@ struct TextareaContent<'a> {
 
     single_line: bool,
     has_focus: bool,
+    /// Shown dimmed while the text is empty. See [`Context::attr_placeholder`].
+    placeholder: BString<'a>,
+    /// Sized to its contents, so it can't scroll past the end. See [`Context::attr_fit_height`].
+    fit_height: bool,
 }
 
 /// NOTE: Must not contain items that require drop().

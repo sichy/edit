@@ -140,7 +140,7 @@ fn window_title(state: &State, panel: PanelId) -> String {
 
 /// Truncates `text` to `max_width` columns, adding an ellipsis if needed.
 /// Returns the result and its width in columns.
-fn truncate(text: &str, max_width: usize) -> (String, usize) {
+pub fn truncate(text: &str, max_width: usize) -> (String, usize) {
     let bytes = text.as_bytes();
     let full = MeasurementConfig::new(&bytes).goto_offset(text.len()).visual_pos.x as usize;
     if full <= max_width {

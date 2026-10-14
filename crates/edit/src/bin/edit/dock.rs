@@ -68,7 +68,7 @@ impl PanelId {
     fn default_dock_side(self) -> Side {
         match self {
             PanelId::Editor => Side::Left,
-            PanelId::Assistant => Side::Bottom,
+            PanelId::Assistant => Side::Left,
             PanelId::Files => Side::Right,
         }
     }
@@ -322,15 +322,20 @@ pub struct Layout {
 }
 
 impl Default for Layout {
-    /// The editor at the top left, the file browser to its right and the assistant below both.
+    /// The assistant at the left spanning the full height, the editor next to it and the file browser at the right.
     fn default() -> Self {
-        let top = DockNode::split(
+        let main = DockNode::split(
             Side::Right,
             0.28,
             DockNode::Panel(PanelId::Files),
             DockNode::Panel(PanelId::Editor),
         );
-        let root = DockNode::split(Side::Bottom, 0.25, DockNode::Panel(PanelId::Assistant), top);
+        let root = DockNode::split(
+            Side::Left,
+            EDGE_DOCK_FRACTION,
+            DockNode::Panel(PanelId::Assistant),
+            main,
+        );
         Layout { docked: Some(root), floating: Vec::new(), zoomed: None }
     }
 }
@@ -1425,7 +1430,8 @@ mod tests {
     #[test]
     fn test_splitter_respects_min_size() {
         let mut wm = manager(Layout::default());
-        let path = wm.splitters.iter().find(|s| s.axis == Axis::Horizontal).unwrap().path.clone();
+        let editor_path = wm.layout.docked.as_ref().unwrap().path_of(PanelId::Editor).unwrap();
+        let path = editor_path[..editor_path.len() - 1].to_vec();
         wm.drag_splitter(&path, 0, Point { x: 2, y: 5 });
         wm.compute_frames();
         let editor = wm.frame(PanelId::Editor).unwrap();

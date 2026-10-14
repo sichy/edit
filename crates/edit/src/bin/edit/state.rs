@@ -16,6 +16,7 @@ use crate::apperr;
 use crate::completion::CompletionState;
 use crate::dock::WindowManager;
 use crate::documents::DocumentManager;
+use crate::draw_ai_dock::ChatMessage;
 use crate::localization::*;
 use crate::lsp::LspManager;
 
@@ -181,8 +182,9 @@ pub struct State {
     pub windows: WindowManager,
 
     // AI Assistant
-    pub ai_prompt: String,
-    pub ai_output: String,
+    pub ai_prompt: buffer::RcTextBuffer,
+    pub ai_messages: Vec<ChatMessage>,
+    pub ai_scroll_to_bottom: bool,
 
     // Folder Browser
     pub folder_browser_current_dir: DisplayablePathBuf,
@@ -244,8 +246,13 @@ impl State {
 
             windows: WindowManager::load(),
 
-            ai_prompt: Default::default(),
-            ai_output: Default::default(),
+            ai_prompt: {
+                let prompt = buffer::TextBuffer::new_rc(true)?;
+                prompt.borrow_mut().set_word_wrap(true);
+                prompt
+            },
+            ai_messages: Vec::new(),
+            ai_scroll_to_bottom: false,
 
             // Folder Browser initialization
             folder_browser_current_dir: DisplayablePathBuf::from_path(
