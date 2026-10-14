@@ -530,6 +530,7 @@ pub struct WindowManager {
     pressed_button: Option<(PanelId, TitleButton)>,
     last_title_click: Option<(PanelId, Point, Instant)>,
     prev_mouse_state: InputMouseState,
+    prev_mouse_position: Point,
 
     // Computed by `begin_frame()`.
     work_area: Rect,
@@ -560,6 +561,7 @@ impl WindowManager {
             pressed_button: None,
             last_title_click: None,
             prev_mouse_state: InputMouseState::None,
+            prev_mouse_position: Point::MIN,
 
             work_area: Rect::default(),
             frames: Vec::new(),
@@ -886,9 +888,18 @@ impl WindowManager {
         let state = ctx.mouse_state();
         let pos = ctx.mouse_position();
         let prev = std::mem::replace(&mut self.prev_mouse_state, state);
+        let prev_pos = std::mem::replace(&mut self.prev_mouse_position, pos);
 
         if state == InputMouseState::Left {
-            if prev != InputMouseState::Left { self.on_press(ctx, pos) } else { self.on_drag(pos) }
+            if prev != InputMouseState::Left {
+                self.on_press(ctx, pos)
+            } else if pos != prev_pos {
+                // Every input is drawn several times until the UI settles.
+                // Reacting to an unchanged position would keep it from ever settling.
+                self.on_drag(pos)
+            } else {
+                false
+            }
         } else if self.drag.is_some() || self.pressed_button.is_some() {
             self.on_release(pos)
         } else {

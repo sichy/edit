@@ -1778,9 +1778,10 @@ impl<'a> Context<'a, '_> {
         self.tui.mouse_is_drag
     }
 
-    /// Returns whether any node besides the root has the focus.
+    /// Returns whether any node besides the main root has the focus.
+    /// Floating roots, like modals, count as focused nodes.
     pub fn is_anything_focused(&self) -> bool {
-        self.tui.focused_node_path.len() > 1
+        self.tui.focused_node_path.as_slice() != [ROOT_ID]
     }
 
     /// Returns whether a modal was open during the previous frame.
