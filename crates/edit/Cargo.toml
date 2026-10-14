@@ -10,7 +10,6 @@ rust-version.workspace = true
 
 build = "build/main.rs"
 categories = ["text-editors", "command-line-utilities"]
-homepage = "https://github.com/sichy/edit"
 keywords = ["text-editor", "cli", "editor"]
 readme = "../../README.md"
 

@@ -141,14 +141,14 @@ fn draw_menu_view(ctx: &mut Context, state: &mut State) {
             ctx.needs_rerender();
         }
     }
-    
+
     // AI Assistant menu item
-    if !state.ai_dock_visible {
-        if ctx.menubar_menu_button("Open AI Assistant", 'I', kbmod::CTRL_ALT | vk::B) {
-            state.ai_dock_visible = true;
-            state.ai_dock_size = AiDockSize::Default;
-            ctx.needs_rerender();
-        }
+    if !state.ai_dock_visible
+        && ctx.menubar_menu_button("Open AI Assistant", 'I', kbmod::CTRL_ALT | vk::B)
+    {
+        state.ai_dock_visible = true;
+        state.ai_dock_size = AiDockSize::Default;
+        ctx.needs_rerender();
     }
 
     ctx.menubar_menu_end();

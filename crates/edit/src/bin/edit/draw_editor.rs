@@ -22,13 +22,13 @@ pub fn draw_editor(ctx: &mut Context, state: &mut State) {
         StateSearchKind::Replace => 6,
         _ => 3,
     };
-    
+
     // Add space for AI dock if visible
     if state.ai_dock_visible {
         height_reduction += match state.ai_dock_size {
-            AiDockSize::Minimized => 3,  // Just header and border
-            AiDockSize::Default => 8,    // Normal size
-            AiDockSize::Expanded => size.height / 2,  // 50% of screen
+            AiDockSize::Minimized => 3,              // Just header and border
+            AiDockSize::Default => 8,                // Normal size
+            AiDockSize::Expanded => size.height / 2, // 50% of screen
         };
     }
 

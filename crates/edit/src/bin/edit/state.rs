@@ -126,9 +126,9 @@ pub enum StateEncodingChange {
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum AiDockSize {
-    Minimized,  // Single line with title and up arrow
-    Default,    // Normal size (8 lines)
-    Expanded,   // 50% of screen height
+    Minimized, // Single line with title and up arrow
+    Default,   // Normal size (8 lines)
+    Expanded,  // 50% of screen height
 }
 
 #[derive(Default)]
@@ -246,7 +246,7 @@ impl State {
             goto_invalid: false,
 
             // AI Dock initialization
-            ai_dock_visible: true,  // Make visible by default for testing
+            ai_dock_visible: true, // Make visible by default for testing
             ai_dock_focused: false,
             ai_dock_size: AiDockSize::Default,
             ai_prompt: Default::default(),
@@ -255,7 +255,9 @@ impl State {
             // Folder Browser initialization
             folder_browser_visible: true,
             folder_browser_width: 30, // 30% of screen width
-            folder_browser_current_dir: DisplayablePathBuf::from_path(std::env::current_dir().unwrap_or_default()),
+            folder_browser_current_dir: DisplayablePathBuf::from_path(
+                std::env::current_dir().unwrap_or_default(),
+            ),
             folder_browser_current_dir_revision: 0,
             folder_browser_entries: None,
             folder_browser_selected: 0,

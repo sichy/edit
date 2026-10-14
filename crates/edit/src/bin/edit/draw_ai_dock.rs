@@ -17,9 +17,9 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
 
     // Calculate height based on dock size
     let dock_height = match state.ai_dock_size {
-        AiDockSize::Minimized => 3,  // Just header and border
-        AiDockSize::Default => 8,    // Normal size
-        AiDockSize::Expanded => ctx.size().height / 2,  // 50% of screen
+        AiDockSize::Minimized => 3,                    // Just header and border
+        AiDockSize::Default => 8,                      // Normal size
+        AiDockSize::Expanded => ctx.size().height / 2, // 50% of screen
     };
 
     // Create AI dock area
@@ -38,12 +38,12 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
             ctx.table_set_cell_gap(Size { width: 0, height: 0 });
             {
                 ctx.table_next_row();
-                
+
                 // Title with dash prefix
                 ctx.label("title_prefix1", "──");
                 ctx.label("title_prefix2", " AI Assistant ");
                 ctx.attr_foreground_rgba(StraightRgba::from_rgba(0xe0e0e0ff)); // Light text
-                
+
                 // Control buttons
                 match state.ai_dock_size {
                     AiDockSize::Minimized => {
@@ -56,7 +56,7 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
                             state.ai_dock_focused = false;
                             ctx.needs_rerender();
                         }
-                    },
+                    }
                     AiDockSize::Default => {
                         if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
                             state.ai_dock_size = AiDockSize::Minimized;
@@ -71,7 +71,7 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
                             state.ai_dock_focused = false;
                             ctx.needs_rerender();
                         }
-                    },
+                    }
                     AiDockSize::Expanded => {
                         if ctx.button("minimize_down", "▼", ButtonStyle::default()) {
                             state.ai_dock_size = AiDockSize::Default;
@@ -82,7 +82,7 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
                             state.ai_dock_focused = false;
                             ctx.needs_rerender();
                         }
-                    },
+                    }
                 }
             }
             ctx.table_end();
@@ -103,7 +103,7 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
                 if ctx.editline("ai_prompt_input", &mut state.ai_prompt) {
                     // Handle input changes if needed
                 }
-                
+
                 if state.ai_dock_focused {
                     ctx.inherit_focus();
                 }
@@ -118,7 +118,7 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
                 ctx.table_set_cell_gap(Size { width: 1, height: 0 });
                 {
                     ctx.table_next_row();
-                    
+
                     if ctx.button("send", "Send (Ctrl+Enter)", ButtonStyle::default()) {
                         execute_ai_prompt(ctx, state);
                     }
@@ -152,18 +152,18 @@ pub fn draw_ai_dock(ctx: &mut Context, state: &mut State) {
     ctx.block_end();
 
     // Handle keyboard input when AI dock is focused
-    if state.ai_dock_focused {
-        if let Some(key) = ctx.keyboard_input() {
-            if key == vk::ESCAPE {
-                state.ai_dock_visible = false;
-                state.ai_dock_focused = false;
-                ctx.needs_rerender();
-                ctx.set_input_consumed();
-            } else if key == kbmod::CTRL | vk::RETURN {
-                execute_ai_prompt(ctx, state);
-                ctx.needs_rerender();
-                ctx.set_input_consumed();
-            }
+    if state.ai_dock_focused
+        && let Some(key) = ctx.keyboard_input()
+    {
+        if key == vk::ESCAPE {
+            state.ai_dock_visible = false;
+            state.ai_dock_focused = false;
+            ctx.needs_rerender();
+            ctx.set_input_consumed();
+        } else if key == kbmod::CTRL | vk::RETURN {
+            execute_ai_prompt(ctx, state);
+            ctx.needs_rerender();
+            ctx.set_input_consumed();
         }
     }
 }
@@ -175,8 +175,11 @@ fn execute_ai_prompt(ctx: &mut Context, state: &mut State) {
 
     // For now, just simulate AI output with a simple response
     // TODO: Integrate with actual AI API
-    state.ai_output = format!("AI Response to: '{}'\n[This is a placeholder - AI integration coming soon!]", state.ai_prompt);
-    
+    state.ai_output = format!(
+        "AI Response to: '{}'\n[This is a placeholder - AI integration coming soon!]",
+        state.ai_prompt
+    );
+
     // Optional: Insert output into current document
     if let Some(doc) = state.documents.active() {
         let mut tb = doc.buffer.borrow_mut();

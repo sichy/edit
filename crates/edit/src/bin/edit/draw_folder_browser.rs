@@ -6,9 +6,9 @@ use std::fs;
 
 use edit::framebuffer::IndexedColor;
 use edit::helpers::*;
+use edit::icu;
 use edit::input::{kbmod, vk};
 use edit::tui::*;
-use edit::icu;
 
 use crate::state::*;
 
@@ -17,7 +17,7 @@ pub fn draw_folder_browser(ctx: &mut Context, state: &mut State) {
     if !state.folder_browser_visible {
         return;
     }
-    
+
     if state.folder_browser_entries.is_none() {
         refresh_folder_browser(state);
     }
@@ -37,7 +37,9 @@ pub fn draw_folder_browser(ctx: &mut Context, state: &mut State) {
         ctx.attr_intrinsic_size(Size { width: 0, height: 1 });
         ctx.attr_padding(Rect::two(0, 1));
         {
-            let dir_name = state.folder_browser_current_dir.as_path()
+            let dir_name = state
+                .folder_browser_current_dir
+                .as_path()
                 .file_name()
                 .and_then(|n| n.to_str())
                 .unwrap_or("Root");
@@ -52,11 +54,11 @@ pub fn draw_folder_browser(ctx: &mut Context, state: &mut State) {
         ctx.next_block_id_mixin(state.folder_browser_current_dir_revision);
         ctx.list_begin("files");
         ctx.inherit_focus();
-        
+
         let mut activated = false;
         let mut selected_entry = None;
         let mut current_item_index = 0;
-        
+
         if let Some(dirs_files) = &state.folder_browser_entries {
             for entries in dirs_files {
                 for entry in entries {
@@ -77,23 +79,26 @@ pub fn draw_folder_browser(ctx: &mut Context, state: &mut State) {
                 }
             }
         }
-        
+
         ctx.list_end();
-        
+
         // Handle navigation
-        if ctx.contains_focus() && (ctx.consume_shortcut(vk::BACK) || ctx.consume_shortcut(kbmod::ALT | vk::UP)) {
+        if ctx.contains_focus()
+            && (ctx.consume_shortcut(vk::BACK) || ctx.consume_shortcut(kbmod::ALT | vk::UP))
+        {
             selected_entry = Some(DisplayablePathBuf::from(".."));
             activated = true;
         }
-        
-        if activated && let Some(entry) = selected_entry {
-            if let Some(path) = update_folder_browser_path(state, entry) {
-                // It's a file, open it
-                if let Err(err) = state.documents.add_file_path(&path) {
-                    error_log_add(ctx, state, err);
-                } else {
-                    ctx.needs_rerender();
-                }
+
+        if activated
+            && let Some(entry) = selected_entry
+            && let Some(path) = update_folder_browser_path(state, entry)
+        {
+            // It's a file, open it
+            if let Err(err) = state.documents.add_file_path(&path) {
+                error_log_add(ctx, state, err);
+            } else {
+                ctx.needs_rerender();
             }
         }
     }
@@ -101,7 +106,10 @@ pub fn draw_folder_browser(ctx: &mut Context, state: &mut State) {
 }
 
 // Returns Some(path) if the path refers to a file
-fn update_folder_browser_path(state: &mut State, entry: DisplayablePathBuf) -> Option<std::path::PathBuf> {
+fn update_folder_browser_path(
+    state: &mut State,
+    entry: DisplayablePathBuf,
+) -> Option<std::path::PathBuf> {
     let old_path = state.folder_browser_current_dir.as_path();
     let path = old_path.join(entry.as_path());
     let path = edit::path::normalize(&path);
@@ -122,10 +130,11 @@ fn update_folder_browser_path(state: &mut State, entry: DisplayablePathBuf) -> O
         let name = path.file_name().map_or(Default::default(), |s| s.into());
         (dir, name)
     };
-    
+
     if dir != state.folder_browser_current_dir.as_path() {
         state.folder_browser_current_dir = DisplayablePathBuf::from_path(dir.to_path_buf());
-        state.folder_browser_current_dir_revision = state.folder_browser_current_dir_revision.wrapping_add(1);
+        state.folder_browser_current_dir_revision =
+            state.folder_browser_current_dir_revision.wrapping_add(1);
         state.folder_browser_entries = None;
         state.folder_browser_selected = 0; // Reset selection when changing directories
     }

@@ -349,16 +349,16 @@ fn draw(tui: &mut Tui, input: Option<input::Input>, state: &mut State) {
 
     draw_menubar(ctx, state);
     draw_tabbar(ctx, state);
-    
+
     if state.folder_browser_visible {
         // Calculate editor and folder widths for split view
         let screen_width = ctx.size().width;
-        let editor_width = (screen_width as f32 * 0.7) as CoordType;  // 70% for editor
-        let folder_browser_width = screen_width - editor_width;        // Remaining 30% for folder browser
-        
+        let editor_width = (screen_width as f32 * 0.7) as CoordType; // 70% for editor
+        let folder_browser_width = screen_width - editor_width; // Remaining 30% for folder browser
+
         // Update state with calculated widths
         state.folder_browser_width = folder_browser_width;
-        
+
         // Editor and Folder Browser side by side
         ctx.table_begin("content_layout");
         ctx.table_set_columns(&[editor_width, folder_browser_width]);
@@ -370,7 +370,7 @@ fn draw(tui: &mut Tui, input: Option<input::Input>, state: &mut State) {
         // Just editor taking full width
         draw_editor(ctx, state);
     }
-    
+
     draw_statusbar(ctx, state);
     draw_ai_dock(ctx, state); // Draw AI dock above status bar
 
@@ -457,11 +457,8 @@ fn draw(tui: &mut Tui, input: Option<input::Input>, state: &mut State) {
         } else if key == kbmod::CTRL_SHIFT | vk::TAB && state.documents.len() > 1 {
             // Switch to previous tab
             let active_index = state.documents.active_index();
-            let prev_index = if active_index == 0 { 
-                state.documents.len() - 1 
-            } else { 
-                active_index - 1 
-            };
+            let prev_index =
+                if active_index == 0 { state.documents.len() - 1 } else { active_index - 1 };
             state.documents.set_active_index(prev_index);
         } else if key == kbmod::CTRL | vk::N1 && state.documents.len() > 0 {
             state.documents.set_active_index(0);
@@ -484,11 +481,7 @@ fn draw(tui: &mut Tui, input: Option<input::Input>, state: &mut State) {
         } else if key == kbmod::CTRL_ALT | vk::B {
             // Toggle AI dock
             state.ai_dock_visible = !state.ai_dock_visible;
-            if state.ai_dock_visible {
-                state.ai_dock_focused = true;
-            } else {
-                state.ai_dock_focused = false;
-            }
+            state.ai_dock_focused = state.ai_dock_visible;
         } else if key == vk::F4 {
             // Toggle folder browser
             toggle_folder_browser(state);
