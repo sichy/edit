@@ -2193,9 +2193,10 @@ impl<'a> Context<'a, '_> {
         }
     }
 
-    /// Sizes the last [`Context::textarea()`] to fit its contents, from 1 up to `max_lines`.
-    /// Unlike in the editor, it can't be scrolled past its last line. Returns the new height.
-    pub fn attr_fit_height(&mut self, max_lines: CoordType) -> CoordType {
+    /// Sizes the last [`Context::textarea()`] to fit its contents, from `min_lines` up to
+    /// `max_lines`. Unlike in the editor, it can't be scrolled past its last line.
+    /// Returns the new height.
+    pub fn attr_fit_height(&mut self, min_lines: CoordType, max_lines: CoordType) -> CoordType {
         let mut last_node = self.tree.last_node.borrow_mut();
         let last_node = &mut *last_node;
         let NodeContent::Textarea(tc) = &mut last_node.content else {
@@ -2203,7 +2204,8 @@ impl<'a> Context<'a, '_> {
             return 0;
         };
         let lines = tc.buffer.borrow().visual_line_count();
-        let height = lines.clamp(1, max_lines.max(1));
+        let max_lines = max_lines.max(1);
+        let height = lines.clamp(min_lines.clamp(1, max_lines), max_lines);
         tc.scroll_offset.y = tc.scroll_offset.y.min(lines - height).max(0);
         tc.fit_height = true;
         last_node.intrinsic_size.height = height;

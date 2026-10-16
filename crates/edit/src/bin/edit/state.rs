@@ -15,7 +15,7 @@ use crate::apperr;
 use crate::completion::CompletionState;
 use crate::dock::WindowManager;
 use crate::documents::DocumentManager;
-use crate::draw_ai_dock::ChatMessage;
+use crate::draw_ai_dock::{ChatMessage, ChatMode, ChatPicker, git_branch};
 use crate::localization::*;
 use crate::lsp::LspManager;
 use crate::theme::Theme;
@@ -185,6 +185,15 @@ pub struct State {
     pub ai_prompt: buffer::RcTextBuffer,
     pub ai_messages: Vec<ChatMessage>,
     pub ai_scroll_to_bottom: bool,
+    pub ai_mode: ChatMode,
+    /// Index into [`crate::draw_ai_dock::MODELS`].
+    pub ai_model: usize,
+    pub ai_picker: Option<ChatPicker>,
+    /// Moves the focus back into the prompt after a click on the composer's buttons.
+    pub ai_focus_prompt: bool,
+    /// Names of the files attached to the next prompt.
+    pub ai_context: Vec<String>,
+    pub ai_branch: Option<String>,
 
     // Folder Browser
     pub folder_browser_current_dir: DisplayablePathBuf,
@@ -252,6 +261,12 @@ impl State {
             },
             ai_messages: Vec::new(),
             ai_scroll_to_bottom: false,
+            ai_mode: ChatMode::default(),
+            ai_model: 0,
+            ai_picker: None,
+            ai_focus_prompt: false,
+            ai_context: Vec::new(),
+            ai_branch: git_branch(),
 
             // Folder Browser initialization
             folder_browser_current_dir: DisplayablePathBuf::from_path(
