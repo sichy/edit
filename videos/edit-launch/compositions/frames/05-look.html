@@ -1,0 +1,368 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-500.woff2") format("woff2");
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-800.woff2") format("woff2");
+      font-weight: 800;
+      font-style: normal;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    .\30 5-look-ground {
+      position: absolute;
+      inset: 0;
+      background: #1e1e1e;
+    }
+
+    .\30 5-look-content {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ISO POSE (shared spec) */
+    .\30 5-look-stage {
+      position: absolute;
+      inset: 0;
+      perspective: 4200px;
+      perspective-origin: 50% 45%;
+    }
+    .\30 5-look-camera {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transform: translate(180px, 60px) scale(0.92);
+    }
+    .\30 5-look-iso {
+      position: absolute;
+      left: 280px;
+      top: 141px;
+      width: 1360px;
+      height: 798px;
+      transform-style: preserve-3d;
+      transform: rotateX(54deg) rotateZ(-38deg);
+    }
+
+    .\30 5-look-slab {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+    }
+    .\30 5-look-face {
+      position: absolute;
+      inset: 0;
+      box-sizing: border-box;
+      border: 1px solid #484848;
+      overflow: hidden;
+    }
+    .\30 5-look-face img {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .\30 5-look-side-front {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      width: 100%;
+      transform-origin: 50% 0;
+      transform: rotateX(-90deg);
+    }
+    .\30 5-look-side-left {
+      position: absolute;
+      top: 0;
+      right: 100%;
+      height: 100%;
+      transform-origin: 100% 50%;
+      transform: rotateY(-90deg);
+    }
+    .\30 5-look-back img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      border: 1px solid #484848;
+    }
+
+    /* Plate labels, positioned in screen space from the projected plate corner */
+    .\30 5-look-labels {
+      position: absolute;
+      inset: 0;
+    }
+    .\30 5-look-chip {
+      position: absolute;
+      height: 30px;
+      padding: 0 10px;
+      box-sizing: border-box;
+      background: #1e1e1e;
+      border: 1px solid #484848;
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 28px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #d4d4d4;
+      white-space: nowrap;
+    }
+    .\30 5-look-chip span {
+      color: #8e8e8e;
+      margin-right: 10px;
+    }
+    .\30 5-look-chip.\30 5-look-accent,
+    .\30 5-look-chip.\30 5-look-accent span {
+      color: #3b8eea;
+    }
+    .\30 5-look-leader {
+      position: absolute;
+      width: 30px;
+      height: 1px;
+      background: #484848;
+      transform-origin: 100% 50%;
+    }
+    .\30 5-look-dot {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: #d4d4d4;
+    }
+    .\30 5-look-dot.\30 5-look-accent {
+      background: #3b8eea;
+    }
+
+    /* Headline column */
+    .\30 5-look-copy {
+      position: absolute;
+      left: 120px;
+      top: 300px;
+      width: 500px;
+    }
+    .\30 5-look-kicker {
+      font-weight: 500;
+      font-size: 26px;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #3b8eea;
+    }
+    .\30 5-look-h2 {
+      margin-top: 28px;
+      font-weight: 800;
+      font-size: 92px;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      text-transform: lowercase;
+      color: #d4d4d4;
+    }
+    .\30 5-look-line {
+      display: block;
+      overflow: hidden;
+      padding-bottom: 6px;
+    }
+    .\30 5-look-line span {
+      display: inline-block;
+    }
+    .\30 5-look-lead {
+      margin-top: 30px;
+      width: 440px;
+      font-weight: 400;
+      font-size: 28px;
+      line-height: 1.45;
+      color: #8e8e8e;
+    }
+  </style>
+
+  <div data-hf-id="hf-xbks" id="root" data-composition-id="05-look" data-width="1920" data-height="1080" data-duration="4.4">
+    <div data-hf-id="hf-j31h" class="clip 05-look-ground" data-start="0" data-duration="4.4" data-track-index="0"></div>
+
+    <div data-hf-id="hf-8im6" class="clip 05-look-content" data-start="0" data-duration="4.4" data-track-index="1">
+      <div data-hf-id="hf-fxa2" class="05-look-stage" data-role="stage">
+        <div data-hf-id="hf-nzv9" class="05-look-camera">
+          <div data-hf-id="hf-fdhe" class="05-look-iso" data-role="iso">
+            <div data-hf-id="hf-eljk" class="05-look-slab 05-look-back" data-role="back-menu">
+              <img data-hf-id="hf-cbri" src="assets/menu.png" alt="" />
+            </div>
+            <div data-hf-id="hf-1zql" class="05-look-slab 05-look-back" data-role="back-search">
+              <img data-hf-id="hf-n99z" src="assets/search.png" alt="" />
+            </div>
+
+            <div data-hf-id="hf-v93l" class="05-look-slab" data-role="base">
+              <div data-hf-id="hf-v0zn" class="05-look-face">
+                <img data-hf-id="hf-bpje" src="assets/zoom.png" alt="" />
+              </div>
+              <div data-hf-id="hf-p4pa" class="05-look-side-front" style="height: 14px; background: #141414"></div>
+              <div data-hf-id="hf-tafp" class="05-look-side-left" style="width: 14px; background: #141414"></div>
+            </div>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-7o80" class="05-look-labels" data-role="labels"></div>
+      </div>
+
+      <div data-hf-id="hf-t0x3" class="05-look-copy">
+        <div data-hf-id="hf-sal5" class="05-look-kicker" data-role="kicker">03 / theme</div>
+        <div data-hf-id="hf-c0n6" class="05-look-h2">
+          <span data-hf-id="hf-0497" class="05-look-line"><span data-hf-id="hf-4qf5" data-role="word-1">a new</span></span>
+          <span data-hf-id="hf-udwr" class="05-look-line"><span data-hf-id="hf-o5rw" data-role="word-2">look</span></span>
+        </div>
+        <div data-hf-id="hf-y0by" class="05-look-lead" data-role="lead">every color comes from your terminal.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      const root = document.querySelector('[data-composition-id="05-look"]');
+      const pick = (role) => root.querySelector('[data-role="' + role + '"]');
+      const iso = pick("iso");
+      const labelLayer = pick("labels");
+      const tl = gsap.timeline({ paused: true });
+
+      const PLATE_W = 1360;
+      const PLATE_H = 798;
+      const PLATE_THICKNESS = 6;
+      const PLATE_OPACITY = 0.85;
+
+      const PLATES = [
+        { name: "surface", color: "#1E1E1E", side: "#141414", z: 60, at: 1.0 },
+        { name: "panel", color: "#252525", side: "#1A1A1A", z: 110, at: 1.25 },
+        { name: "chrome", color: "#2D2D2D", side: "#1F1F1F", z: 160, at: 1.5 },
+        { name: "elevated", color: "#383838", side: "#272727", z: 210, at: 1.75 },
+        { name: "border", color: "#4B4B4B", side: "#333333", z: 260, at: 2.0 },
+        { name: "accent", color: "#3B8EEA", side: "#2A66A8", z: 310, at: 2.25, accent: true },
+      ];
+
+      // Mirrors the CSS pose: .iso rotateX(54) rotateZ(-38) about its center,
+      // .camera translate(180,60) scale(0.92) about frame center, stage perspective 4200 at (50%, 45%).
+      function projectPlatePoint(localX, localY, localZ) {
+        const rz = (-38 * Math.PI) / 180;
+        const rx = (54 * Math.PI) / 180;
+        const px = localX - PLATE_W / 2;
+        const py = localY - PLATE_H / 2;
+        const x1 = px * Math.cos(rz) - py * Math.sin(rz);
+        const y1 = px * Math.sin(rz) + py * Math.cos(rz);
+        const y2 = y1 * Math.cos(rx) - localZ * Math.sin(rx);
+        const z2 = y1 * Math.sin(rx) + localZ * Math.cos(rx);
+        const camX = 960 + 180 + x1 * 0.92;
+        const camY = 540 + 60 + y2 * 0.92;
+        const perspective = 4200;
+        const factor = perspective / (perspective - z2);
+        return { x: 960 + (camX - 960) * factor, y: 486 + (camY - 486) * factor };
+      }
+
+      function el(className, styles) {
+        const node = document.createElement("div");
+        node.className = className;
+        Object.assign(node.style, styles || {});
+        return node;
+      }
+
+      // Scene 1 — background plates settle into their resting place behind the hero plate
+      tl.fromTo(
+        pick("back-menu"),
+        { x: -900, y: 0, z: -160 },
+        { x: -900, y: 0, z: -60, duration: 1.0, ease: "power2.out" },
+        0,
+      );
+      tl.fromTo(
+        pick("back-search"),
+        { x: 700, y: 0, z: -160 },
+        { x: 700, y: 0, z: -60, duration: 1.0, ease: "power2.out" },
+        0,
+      );
+      tl.fromTo(
+        [pick("back-menu").firstElementChild, pick("back-search").firstElementChild],
+        { opacity: 0.15 },
+        { opacity: 0.4, duration: 0.8, ease: "power1.out" },
+        0,
+      );
+
+      tl.fromTo(pick("kicker"), { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 0);
+      tl.fromTo(pick("word-1"), { yPercent: 110 }, { yPercent: 0, duration: 0.6, ease: "power3.out" }, 0.25);
+      tl.fromTo(pick("word-2"), { yPercent: 110 }, { yPercent: 0, duration: 0.6, ease: "power3.out" }, 0.5);
+
+      // Scene 2 — depth-scatter-assemble: each color plate peels off the hero plate from an
+      // index-derived scatter point and locks flat at its own height
+      const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+      const SCATTER_RADIUS = 120;
+      const TUMBLE_DEG = 14;
+      const ASSEMBLE_DUR = 0.7;
+
+      PLATES.forEach((plate, i) => {
+        const slab = el("05-look-slab");
+        const top = el("05-look-face", { background: plate.color });
+        const front = el("05-look-side-front", { height: `${PLATE_THICKNESS}px`, background: plate.side });
+        const left = el("05-look-side-left", { width: `${PLATE_THICKNESS}px`, background: plate.side });
+        slab.append(top, front, left);
+        iso.appendChild(slab);
+
+        const a = i * GOLDEN;
+        tl.fromTo(
+          slab,
+          {
+            x: Math.cos(a) * SCATTER_RADIUS,
+            y: Math.sin(a) * SCATTER_RADIUS,
+            z: 8,
+            rotationX: Math.sin(a) * TUMBLE_DEG,
+            rotationY: Math.cos(a) * TUMBLE_DEG,
+          },
+          { x: 0, y: 0, z: plate.z, rotationX: 0, rotationY: 0, duration: ASSEMBLE_DUR, ease: "power3.out" },
+          plate.at,
+        );
+        tl.fromTo(
+          [top, front, left],
+          { opacity: 0 },
+          { opacity: PLATE_OPACITY, duration: 0.3, ease: "power1.out" },
+          plate.at,
+        );
+
+        const corner = projectPlatePoint(PLATE_W, PLATE_H, plate.z);
+        const accentClass = plate.accent ? " 05-look-accent" : "";
+
+        const dot = el(`05-look-dot${accentClass}`, { left: `${corner.x - 2.5}px`, top: `${corner.y - 2.5}px` });
+        const leader = el("05-look-leader", { left: `${corner.x - 34}px`, top: `${corner.y}px` });
+        const chip = el(`05-look-chip${accentClass}`, {
+          right: `${1920 - (corner.x - 34)}px`,
+          top: `${corner.y - 15}px`,
+        });
+        const index = document.createElement("span");
+        index.textContent = String(i + 1).padStart(2, "0");
+        chip.append(index, document.createTextNode(plate.name));
+        labelLayer.append(leader, chip, dot);
+
+        tl.fromTo(dot, { scale: 0 }, { scale: 1, duration: 0.2, ease: "back.out(2)" }, plate.at + 0.35);
+        tl.fromTo(leader, { scaleX: 0 }, { scaleX: 1, duration: 0.25, ease: "power2.out" }, plate.at + 0.4);
+        tl.fromTo(chip, { opacity: 0, x: 14 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, plate.at + 0.5);
+      });
+
+      // Scene 3 — lead line, then the stack holds with a sub-pixel breath
+      tl.fromTo(pick("lead"), { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 2.5);
+
+      const stage = pick("stage");
+      tl.fromTo(stage, { y: 0 }, { y: 0.5, duration: 0.5, ease: "sine.inOut" }, 3.0);
+      tl.to(stage, { y: 0, duration: 0.5, ease: "sine.inOut" }, 3.5);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["05-look"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,3 @@
+Edit. The editor you grew up with, rebuilt for how you work now.
+Windows that dock. An assistant built in. A new look.
+Now in your terminal.

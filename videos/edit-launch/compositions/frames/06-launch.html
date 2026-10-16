@@ -1,0 +1,407 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-500.woff2") format("woff2");
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-800.woff2") format("woff2");
+      font-weight: 800;
+      font-style: normal;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      font-family: "JetBrains Mono", monospace;
+      color: #d4d4d4;
+    }
+
+    /* Class names start with a digit (frame-id prefix), so selectors escape the leading "0" as \30. */
+    .\30 6-launch-ground {
+      position: absolute;
+      inset: 0;
+      background: #1e1e1e;
+    }
+
+    .\30 6-launch-layer {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* Convergence point = wordmark center (960, 381). */
+    .\30 6-launch-plates {
+      position: absolute;
+      left: 960px;
+      top: 381px;
+      width: 0;
+      height: 0;
+    }
+    .\30 6-launch-plate {
+      position: absolute;
+      perspective: 4200px;
+    }
+    .\30 6-launch-plate-face {
+      position: absolute;
+      inset: 0;
+      border: 1px solid #484848;
+      background-color: #232323;
+      background-image: url("assets/empty.png");
+      background-repeat: no-repeat;
+      transform: rotateX(54deg) rotateZ(-38deg);
+      transform-style: preserve-3d;
+    }
+    .\30 6-launch-plate-face::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      background: #141414;
+      transform: translateZ(-18px);
+    }
+
+    /* Screenshots are 2720x1596; full plates are scaled to 420px wide (s = 0.15441). */
+    .\30 6-launch-plate--empty {
+      width: 420px;
+      height: 246px;
+      margin-left: -210px;
+      margin-top: -123px;
+    }
+    .\30 6-launch-plate--empty .\30 6-launch-plate-face {
+      background-size: 420px 246px;
+    }
+    .\30 6-launch-plate--zoom {
+      width: 420px;
+      height: 246px;
+      margin-left: -210px;
+      margin-top: -123px;
+    }
+    .\30 6-launch-plate--zoom .\30 6-launch-plate-face {
+      background-image: url("assets/zoom.png");
+      background-size: 420px 246px;
+    }
+    /* Panel crops are scaled to 400px tall (s = 400 / 1512 = 0.26455). */
+    .\30 6-launch-plate--assistant {
+      width: 217px;
+      height: 400px;
+      margin-left: -108px;
+      margin-top: -200px;
+    }
+    .\30 6-launch-plate--assistant .\30 6-launch-plate-face {
+      background-size: 720px 422px;
+      background-position: 0 -11px;
+    }
+    .\30 6-launch-plate--files {
+      width: 143px;
+      height: 400px;
+      margin-left: -71px;
+      margin-top: -200px;
+    }
+    .\30 6-launch-plate--files .\30 6-launch-plate-face {
+      background-size: 720px 422px;
+      background-position: -577px -11px;
+    }
+
+    .\30 6-launch-lockup {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 155px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .\30 6-launch-rule {
+      width: 48px;
+      height: 2px;
+      margin-bottom: 30px;
+      background: #3b8eea;
+    }
+    .\30 6-launch-kicker {
+      height: 22px;
+      margin-bottom: 40px;
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #3b8eea;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+    }
+    /* The shipped JetBrains Mono subset has no U+2192, so the arrow is drawn. */
+    .\30 6-launch-arrow {
+      position: relative;
+      display: inline-block;
+      width: 34px;
+      height: 2px;
+      margin: 0 0.6em 0 0.46em;
+      background: #3b8eea;
+    }
+    .\30 6-launch-arrow::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: -5px;
+      width: 10px;
+      height: 10px;
+      box-sizing: border-box;
+      border-top: 2px solid #3b8eea;
+      border-right: 2px solid #3b8eea;
+      transform: translateX(1px) rotate(45deg);
+    }
+    .\30 6-launch-wordmark {
+      display: flex;
+      align-items: baseline;
+      height: 264px;
+      margin-bottom: 36px;
+      font-size: 300px;
+      font-weight: 800;
+      line-height: 0.88;
+      letter-spacing: -0.04em;
+      color: #d4d4d4;
+      white-space: nowrap;
+    }
+    .\30 6-launch-cursor {
+      display: inline-block;
+      width: 0.52em;
+      height: 0.74em;
+      margin-left: 0.08em;
+      background: #3b8eea;
+    }
+    .\30 6-launch-lead {
+      height: 60px;
+      margin-bottom: 52px;
+      font-size: 40px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #8e8e8e;
+      white-space: nowrap;
+    }
+    .\30 6-launch-pill {
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      width: 460px;
+      height: 84px;
+      padding: 0 32px;
+      border: 1px solid #484848;
+      background: #232323;
+      font-size: 36px;
+      font-weight: 400;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .\30 6-launch-type {
+      display: inline-flex;
+      align-items: baseline;
+      min-width: 6ch;
+      white-space: pre;
+    }
+    .\30 6-launch-prompt {
+      color: #8e8e8e;
+    }
+    .\30 6-launch-command {
+      color: #d4d4d4;
+    }
+    .\30 6-launch-caret {
+      display: inline-block;
+      width: 0.55em;
+      height: 0.95em;
+      margin-left: 4px;
+      background: #d4d4d4;
+      align-self: center;
+    }
+  </style>
+
+  <div data-hf-id="hf-4wnj" id="root" data-composition-id="06-launch" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-l6ja" class="06-launch-ground clip" data-start="0" data-duration="6" data-track-index="0"></div>
+
+    <div data-hf-id="hf-ziqn" class="06-launch-layer clip" data-start="0" data-duration="6" data-track-index="1">
+      <div data-hf-id="hf-2rv8" class="06-launch-plates">
+        <div data-hf-id="hf-v7uo" id="06-launch-plate-empty" class="06-launch-plate 06-launch-plate--empty">
+          <div data-hf-id="hf-mkbh" class="06-launch-plate-face"></div>
+        </div>
+        <div data-hf-id="hf-a23q" id="06-launch-plate-assistant" class="06-launch-plate 06-launch-plate--assistant">
+          <div data-hf-id="hf-ey5t" class="06-launch-plate-face"></div>
+        </div>
+        <div data-hf-id="hf-r4j6" id="06-launch-plate-zoom" class="06-launch-plate 06-launch-plate--zoom">
+          <div data-hf-id="hf-g52w" class="06-launch-plate-face"></div>
+        </div>
+        <div data-hf-id="hf-cf08" id="06-launch-plate-files" class="06-launch-plate 06-launch-plate--files">
+          <div data-hf-id="hf-fqrv" class="06-launch-plate-face"></div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-wxbd" class="06-launch-lockup">
+        <div data-hf-id="hf-gy4i" id="06-launch-rule" class="06-launch-rule"></div>
+        <div data-hf-id="hf-gtqc" id="06-launch-kicker" class="06-launch-kicker">
+          1991<span data-hf-id="hf-8ri8" class="06-launch-arrow" aria-label="→"></span>2026
+        </div>
+        <div data-hf-id="hf-q39a" id="06-launch-wordmark" class="06-launch-wordmark">
+          <span data-hf-id="hf-yajz" id="06-launch-word-text">edit</span><span data-hf-id="hf-m0qj" id="06-launch-cursor" class="06-launch-cursor"></span>
+        </div>
+        <div data-hf-id="hf-fj3q" id="06-launch-lead" class="06-launch-lead">now in your terminal.</div>
+        <div data-hf-id="hf-exr6" id="06-launch-pill" class="06-launch-pill">
+          <span data-hf-id="hf-u2xm" class="06-launch-type"
+            ><span data-hf-id="hf-gnf7" id="06-launch-prompt" class="06-launch-prompt"></span
+            ><span data-hf-id="hf-k83n" id="06-launch-command" class="06-launch-command"></span></span
+          ><span data-hf-id="hf-t4wz" id="06-launch-caret" class="06-launch-caret"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      const FRAME_ID = "06-launch";
+      const DURATION = 6;
+      const BEAT = 0.5;
+      const QUARTER = BEAT / 4;
+
+      const T_IMPACT = 1.0;
+      const T_BLINK_START = 2.0;
+      const T_KICKER = 2.0;
+      const T_LEAD = 2.5;
+      const T_PILL = 3.5;
+      const T_EXIT = 5.5;
+
+      const el = (suffix) => document.getElementById(`${FRAME_ID}-${suffix}`);
+
+      const plates = [
+        { node: el("plate-empty"), x: -900, y: -320, rotation: -28 },
+        { node: el("plate-assistant"), x: 880, y: -330, rotation: 24 },
+        { node: el("plate-zoom"), x: 920, y: 400, rotation: -22 },
+        { node: el("plate-files"), x: -930, y: 400, rotation: 30 },
+      ];
+      const rule = el("rule");
+      const kicker = el("kicker");
+      const wordmark = el("wordmark");
+      const wordText = el("word-text");
+      const cursor = el("cursor");
+      const lead = el("lead");
+      const pill = el("pill");
+      const prompt = el("prompt");
+      const command = el("command");
+      const caret = el("caret");
+
+      const KEYS = ["$", "$ ", "$ e", "$ ed", "$ edi", "$ edit"];
+      const TYPE_SEQUENCE = [{ t: 0, text: "" }].concat(
+        KEYS.map((text, i) => ({ t: T_PILL + i * QUARTER, text })),
+      );
+      const T_TYPED = TYPE_SEQUENCE[TYPE_SEQUENCE.length - 1].t;
+
+      function typedTextAt(time) {
+        for (let i = TYPE_SEQUENCE.length - 1; i >= 0; i--) {
+          if (time >= TYPE_SEQUENCE[i].t) return TYPE_SEQUENCE[i].text;
+        }
+        return "";
+      }
+
+      function isOnBeat(time, since) {
+        return (time - since) % BEAT < BEAT / 2;
+      }
+
+      function render(time) {
+        const typed = typedTextAt(time);
+        prompt.textContent = typed.slice(0, 1);
+        command.textContent = typed.slice(1);
+
+        const caretSolid = time < T_TYPED + BEAT;
+        caret.style.opacity = caretSolid || isOnBeat(time, T_TYPED + BEAT) ? "1" : "0";
+
+        const cursorSolid = time < T_BLINK_START || time >= T_EXIT;
+        cursor.style.opacity = cursorSolid || isOnBeat(time, T_BLINK_START) ? "1" : "0";
+      }
+
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 — the window plates implode into the center, accelerating, and vanish at the downbeat.
+      plates.forEach((plate) => {
+        tl.fromTo(
+          plate.node,
+          { x: plate.x, y: plate.y, rotation: 0, scale: 1 },
+          { x: 0, y: 0, rotation: plate.rotation, scale: 0.03, duration: T_IMPACT, ease: "power3.in" },
+          0,
+        );
+        tl.fromTo(
+          plate.node,
+          { filter: "blur(0px)" },
+          { filter: "blur(8px)", duration: 0.5, ease: "power2.in" },
+          0.5,
+        );
+        tl.fromTo(plate.node, { opacity: 1 }, { opacity: 0, duration: 0.15, ease: "power1.in" }, 0.85);
+      });
+
+      // Scene 2 — the wordmark slams in on the downbeat; the rule stub snaps open above it.
+      tl.fromTo(
+        wordmark,
+        { scale: 1.5, filter: "blur(16px)", opacity: 0 },
+        { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.5, ease: "power4.out" },
+        T_IMPACT,
+      );
+      tl.fromTo(
+        rule,
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.4, ease: "expo.out" },
+        T_IMPACT + QUARTER,
+      );
+
+      // Scene 3 — kicker side-snaps in, then the lead rises in below the wordmark.
+      tl.fromTo(
+        kicker,
+        { x: -80, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.45, ease: "expo.out" },
+        T_KICKER,
+      );
+      tl.fromTo(
+        lead,
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.55, ease: "circ.out" },
+        T_LEAD,
+      );
+
+      // Scene 4 — the terminal pill pops in and "$ edit" types one key per quarter-beat.
+      tl.fromTo(
+        pill,
+        { y: 24, scale: 0.92, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.4, ease: "back.out(2)" },
+        T_PILL,
+      );
+
+      const driver = { t: 0 };
+      tl.to(
+        driver,
+        { t: DURATION, duration: DURATION, ease: "none", onUpdate: () => render(driver.t) },
+        0,
+      );
+
+      // Scene 5 — the lockup fades to the ground; the accent block cursor stays lit to the last frame.
+      tl.fromTo(
+        [rule, kicker, wordText, lead, pill],
+        { opacity: 1 },
+        { opacity: 0, duration: DURATION - T_EXIT, ease: "power2.inOut", immediateRender: false },
+        T_EXIT,
+      );
+
+      render(0);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[FRAME_ID] = tl;
+    })();
+  </script>
+</template>

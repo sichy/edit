@@ -1,0 +1,499 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-500.woff2") format("woff2");
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-800.woff2") format("woff2");
+      font-weight: 800;
+      font-style: normal;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: "JetBrains Mono", monospace;
+      container-type: size;
+    }
+
+    .\30 3-dock-bg {
+      position: absolute;
+      inset: 0;
+      background: #1e1e1e;
+    }
+
+    /* ISO POSE (shared with frame 02) */
+    .\30 3-dock-stage {
+      position: absolute;
+      inset: 0;
+      perspective: 4200px;
+      perspective-origin: 50% 45%;
+    }
+    .\30 3-dock-camera {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transform-origin: 50% 50%;
+      will-change: transform;
+    }
+    .\30 3-dock-iso {
+      position: absolute;
+      left: 280px;
+      top: 141px;
+      width: 1360px;
+      height: 798px;
+      transform-style: preserve-3d;
+      transform: rotateX(54deg) rotateZ(-38deg);
+    }
+    .\30 3-dock-slab {
+      position: absolute;
+      inset: 0;
+      background: #141414;
+      transform: translateZ(-14px);
+    }
+    .\30 3-dock-base {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1360px;
+      height: 798px;
+      display: block;
+    }
+    .\30 3-dock-later {
+      opacity: 0;
+    }
+
+    /* Plate-space rects (source px / 2) */
+    .\30 3-dock-rect {
+      position: absolute;
+    }
+    .\30 3-dock-outline {
+      position: absolute;
+      border: 1px solid #484848;
+    }
+    .\30 3-dock-patch {
+      position: absolute;
+      background: #1e1e1e;
+      opacity: 0;
+    }
+
+    .\30 3-dock-layer {
+      position: absolute;
+      overflow: hidden;
+      background: #1e1e1e;
+      transform-origin: 50% 50%;
+      will-change: transform;
+    }
+    .\30 3-dock-layer img {
+      position: absolute;
+      display: block;
+    }
+    .\30 3-dock-edge {
+      position: absolute;
+      inset: 0;
+      border: 1px solid #484848;
+    }
+
+    .\30 3-dock-pulse {
+      position: absolute;
+      border: 2px solid #3b8eea;
+      background: rgba(59, 142, 234, 0.22);
+      opacity: 0;
+    }
+    .\30 3-dock-flash {
+      position: absolute;
+      border: 2px solid #3b8eea;
+      background: rgba(59, 142, 234, 0.16);
+      opacity: 0;
+      transform-origin: 50% 50%;
+    }
+
+    /* Headline column */
+    .\30 3-dock-copy {
+      position: absolute;
+      left: 120px;
+      top: 300px;
+      width: 520px;
+      /* knockout so the copy stays legible where it crosses the plate */
+      text-shadow:
+        0 0 6px #1e1e1e,
+        0 0 18px #1e1e1e,
+        0 0 32px #1e1e1e;
+    }
+    .\30 3-dock-kicker {
+      font-size: 26px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #3b8eea;
+      line-height: 1;
+      margin-bottom: 28px;
+    }
+    .\30 3-dock-h2 {
+      font-size: 92px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      text-transform: lowercase;
+      color: #d4d4d4;
+      margin: 0;
+    }
+    .\30 3-dock-word {
+      display: inline-block;
+      will-change: transform;
+    }
+    .\30 3-dock-lead {
+      margin-top: 36px;
+      font-size: 30px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #8e8e8e;
+      text-transform: lowercase;
+    }
+  </style>
+
+  <div data-hf-id="hf-u6lq"
+    id="root"
+    data-composition-id="03-dock"
+    data-start="0"
+    data-duration="6.4"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-5k61"
+      class="clip 03-dock-bg"
+      data-start="0"
+      data-duration="6.4"
+      data-track-index="0"
+    ></div>
+
+    <div data-hf-id="hf-zf4n"
+      class="clip 03-dock-stage"
+      data-start="0"
+      data-duration="6.4"
+      data-track-index="1"
+    >
+      <div data-hf-id="hf-bja3" class="03-dock-camera" id="03-dock-camera" data-layout-allow-overflow>
+        <div data-hf-id="hf-yb5d" class="03-dock-iso">
+          <div data-hf-id="hf-g3b2" class="03-dock-slab"></div>
+
+          <img data-hf-id="hf-pgkr" class="03-dock-base" id="03-dock-base-empty" src="assets/empty.png" alt="" />
+          <img data-hf-id="hf-v88f"
+            class="03-dock-base 03-dock-later"
+            id="03-dock-base-drag"
+            src="assets/drag-bottom.png"
+            alt=""
+          />
+          <img data-hf-id="hf-ghdd"
+            class="03-dock-base 03-dock-later"
+            id="03-dock-base-dropped"
+            src="assets/dropped-bottom.png"
+            alt=""
+          />
+
+          <!-- empty desktop where Files used to sit -->
+          <div data-hf-id="hf-q9ym"
+            class="03-dock-patch"
+            id="03-dock-patch"
+            style="left: 1090px; top: 21px; width: 270px; height: 756px"
+          ></div>
+
+          <!-- window edges before the drop -->
+          <div data-hf-id="hf-88y9" id="03-dock-edges-before">
+            <div data-hf-id="hf-qp3q"
+              class="03-dock-outline"
+              style="left: 0; top: 21px; width: 410px; height: 756px"
+            ></div>
+            <div data-hf-id="hf-vq46"
+              class="03-dock-outline"
+              style="left: 410px; top: 21px; width: 680px; height: 756px"
+            ></div>
+          </div>
+
+          <!-- window edges after the drop -->
+          <div data-hf-id="hf-tdxv" id="03-dock-edges-after" class="03-dock-later">
+            <div data-hf-id="hf-jhiy"
+              class="03-dock-outline"
+              style="left: 0; top: 21px; width: 410px; height: 756px"
+            ></div>
+            <div data-hf-id="hf-apuu"
+              class="03-dock-outline"
+              style="left: 410px; top: 21px; width: 950px; height: 378px"
+            ></div>
+            <div data-hf-id="hf-j5lg"
+              class="03-dock-outline"
+              style="left: 410px; top: 399px; width: 950px; height: 378px"
+            ></div>
+          </div>
+
+          <!-- the real drop zone, cropped from drag-bottom.png -->
+          <div data-hf-id="hf-gnxg"
+            class="03-dock-layer 03-dock-later"
+            id="03-dock-dropzone"
+            style="left: 410px; top: 399px; width: 680px; height: 378px"
+          >
+            <img data-hf-id="hf-rtk3"
+              src="assets/drag-bottom.png"
+              alt=""
+              style="left: -410px; top: -399px; width: 1360px; height: 798px"
+            />
+          </div>
+          <div data-hf-id="hf-yw6w"
+            class="03-dock-pulse"
+            id="03-dock-pulse"
+            style="left: 410px; top: 399px; width: 680px; height: 378px"
+          ></div>
+
+          <!-- docked-state accent flash -->
+          <div data-hf-id="hf-gj2y"
+            class="03-dock-flash"
+            id="03-dock-flash"
+            style="left: 410px; top: 399px; width: 950px; height: 378px"
+          ></div>
+
+          <!-- the Files window: the actor -->
+          <div data-hf-id="hf-6kti"
+            class="03-dock-layer"
+            id="03-dock-files"
+            style="left: 1090px; top: 21px; width: 270px; height: 756px"
+          >
+            <img data-hf-id="hf-kl7i"
+              id="03-dock-files-old"
+              src="assets/empty.png"
+              alt=""
+              style="left: -1090px; top: -21px; width: 1360px; height: 798px"
+            />
+            <!-- docked crop, pre-distorted by 1 / END_SCALE so it lands undistorted -->
+            <img data-hf-id="hf-j1fy"
+              id="03-dock-files-new"
+              src="assets/dropped-bottom.png"
+              alt=""
+              style="
+                left: -116.53px;
+                top: -798px;
+                width: 386.53px;
+                height: 1596px;
+                opacity: 0;
+              "
+            />
+            <div data-hf-id="hf-m1lk" class="03-dock-edge" id="03-dock-files-edge"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-hf-id="hf-8vrl"
+      class="clip 03-dock-copy"
+      data-start="0"
+      data-duration="6.4"
+      data-track-index="2"
+    >
+      <div data-hf-id="hf-xuxq" class="03-dock-kicker">01 / docking</div>
+      <h2 data-hf-id="hf-vnyb" class="03-dock-h2">
+        <span data-hf-id="hf-b9p8" class="03-dock-word">windows</span>
+        <span data-hf-id="hf-5ydy" class="03-dock-word">that</span>
+        <span data-hf-id="hf-3hy0" class="03-dock-word">dock</span>
+      </h2>
+      <div data-hf-id="hf-evq8" class="03-dock-lead" id="03-dock-lead">drag a window to any edge. it docks.</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      const FRAME_ID = "03-dock";
+      const root = document.querySelector('[data-composition-id="' + FRAME_ID + '"]');
+      const byId = (id) => document.getElementById(FRAME_ID + "-" + id);
+
+      const camera = byId("camera");
+      const files = byId("files");
+      const filesEdge = byId("files-edge");
+
+      // ISO POSE geometry (stage px)
+      const PERSPECTIVE = 4200;
+      const PERSPECTIVE_ORIGIN = { x: 960, y: 486 };
+      const CAMERA_ORIGIN = { x: 960, y: 540 };
+      const PLATE = { left: 280, top: 141, width: 1360, height: 798 };
+      const ROTATE_X = (54 * Math.PI) / 180;
+      const ROTATE_Z = (-38 * Math.PI) / 180;
+
+      const HANDOFF_CAMERA = { x: 150, y: 20, scale: 1 };
+      const ZOOM_SCALE = 1.18;
+      // Where the editor's bottom half should sit at peak zoom (clear of the headline column)
+      const ZOOM_GOAL = { x: 1180, y: 560 };
+
+      // Plate-local point -> camera-space point (before the camera transform), z toward viewer
+      function plateToCameraSpace(u, v) {
+        const dx = PLATE.left + u - (PLATE.left + PLATE.width / 2);
+        const dy = PLATE.top + v - (PLATE.top + PLATE.height / 2);
+        const rx = dx * Math.cos(ROTATE_Z) - dy * Math.sin(ROTATE_Z);
+        const ry = dx * Math.sin(ROTATE_Z) + dy * Math.cos(ROTATE_Z);
+        return {
+          x: CAMERA_ORIGIN.x + rx,
+          y: CAMERA_ORIGIN.y + ry * Math.cos(ROTATE_X),
+          z: ry * Math.sin(ROTATE_X),
+        };
+      }
+
+      // Camera translate that projects a plate point onto `goal` at `scale`:
+      // projected = PO + k * (C + T + S * (q - C) - PO), k = P / (P - z)
+      function cameraTranslateFor(u, v, scale, goal) {
+        const q = plateToCameraSpace(u, v);
+        const k = PERSPECTIVE / (PERSPECTIVE - q.z);
+        const solve = (axis) =>
+          PERSPECTIVE_ORIGIN[axis] +
+          (goal[axis] - PERSPECTIVE_ORIGIN[axis]) / k -
+          CAMERA_ORIGIN[axis] -
+          scale * (q[axis] - CAMERA_ORIGIN[axis]);
+        return { x: solve("x"), y: solve("y") };
+      }
+
+      // Editor bottom half = drop zone, plate rect 410,399,680,378 -> center 750,588
+      const zoomTranslate = cameraTranslateFor(750, 588, ZOOM_SCALE, ZOOM_GOAL);
+
+      // Files layer starts at plate center 1225,399 (270x756)
+      const FILES_W = 270;
+      const FILES_H = 756;
+      const HOVER = { x: 750 - 1225, y: 588 - 399, scaleX: 1.8, scaleY: 0.7 };
+      const DOCKED = { x: 885 - 1225, y: 588 - 399, scaleX: 950 / FILES_W, scaleY: 378 / FILES_H };
+      const LIFT_Z = 140;
+
+      const tl = gsap.timeline({ paused: true });
+
+      // Handoff state from frame 02
+      tl.set(camera, { x: HANDOFF_CAMERA.x, y: HANDOFF_CAMERA.y, scale: HANDOFF_CAMERA.scale }, 0);
+      tl.set(files, { x: 0, y: 0, z: 0, scaleX: 1, scaleY: 1, opacity: 1 }, 0);
+
+      // Scene 1 (0.0–1.0): headline word by word
+      root.querySelectorAll(".\\30 3-dock-word").forEach((word, i) => {
+        tl.fromTo(
+          word,
+          { opacity: 0, y: 40 },
+          { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" },
+          i * 0.25,
+        );
+      });
+
+      // Scene 2 (1.0–2.0): Files lifts off, empty desktop beneath, camera starts its push
+      tl.set(byId("patch"), { opacity: 1 }, 1.0);
+      tl.to(files, { z: LIFT_Z, duration: 0.55, ease: "power3.out" }, 1.0);
+      tl.to(filesEdge, { borderColor: "#3B8EEA", duration: 0.2, ease: "power1.out" }, 1.0);
+      tl.to(
+        camera,
+        {
+          x: zoomTranslate.x,
+          y: zoomTranslate.y,
+          scale: ZOOM_SCALE,
+          duration: 2.0,
+          ease: "power2.inOut",
+        },
+        1.0,
+      );
+
+      // Scene 3 (2.0–3.0): base cuts to the real drop zone, window glides over it
+      tl.set(byId("base-drag"), { opacity: 1 }, 2.0);
+      tl.set(byId("dropzone"), { opacity: 1 }, 2.0);
+      tl.to(
+        files,
+        {
+          x: HOVER.x,
+          y: HOVER.y,
+          scaleX: HOVER.scaleX,
+          scaleY: HOVER.scaleY,
+          duration: 0.9,
+          ease: "power2.inOut",
+        },
+        2.0,
+      );
+      tl.to(byId("pulse"), { opacity: 1, duration: 0.15, ease: "power2.out" }, 2.5);
+      tl.to(byId("pulse"), { opacity: 0, duration: 0.35, ease: "power2.in" }, 2.65);
+
+      // Scene 4 (3.0–3.5): DROP — morph into the docked region, base cuts to dropped state
+      const DROP_AT = 3.0;
+      const MORPH_DUR = 0.25;
+      tl.set(byId("base-dropped"), { opacity: 1 }, DROP_AT);
+      tl.set(byId("dropzone"), { opacity: 0 }, DROP_AT);
+      tl.set(byId("patch"), { opacity: 0 }, DROP_AT);
+      tl.set(byId("edges-before"), { opacity: 0 }, DROP_AT);
+      tl.set(byId("edges-after"), { opacity: 1 }, DROP_AT);
+      tl.to(
+        files,
+        {
+          x: DOCKED.x,
+          y: DOCKED.y,
+          z: 0,
+          scaleX: DOCKED.scaleX,
+          scaleY: DOCKED.scaleY,
+          duration: MORPH_DUR,
+          ease: "power2.inOut",
+        },
+        DROP_AT,
+      );
+      tl.to(
+        byId("files-old"),
+        { opacity: 0, duration: MORPH_DUR * 0.4, ease: "power1.in" },
+        DROP_AT,
+      );
+      tl.to(
+        byId("files-new"),
+        { opacity: 1, duration: MORPH_DUR * 0.4, ease: "power1.out" },
+        DROP_AT + MORPH_DUR * 0.6,
+      );
+      tl.to(
+        files,
+        { opacity: 0, duration: MORPH_DUR * 0.2, ease: "power1.in", immediateRender: false },
+        DROP_AT + MORPH_DUR,
+      );
+
+      // Accent border flash on the docked Files window
+      tl.fromTo(
+        byId("flash"),
+        { opacity: 0, scale: 1.03 },
+        { opacity: 1, scale: 1, duration: 0.12, ease: "power3.out" },
+        DROP_AT + MORPH_DUR - 0.05,
+      );
+      tl.to(
+        byId("flash"),
+        { opacity: 0, duration: 0.13, ease: "power1.in" },
+        DROP_AT + MORPH_DUR + 0.07,
+      );
+
+      // Scene 5 (3.5–6.0): camera eases back out, lead line lands, hold
+      tl.to(
+        camera,
+        {
+          x: HANDOFF_CAMERA.x,
+          y: HANDOFF_CAMERA.y,
+          scale: HANDOFF_CAMERA.scale,
+          duration: 1.0,
+          ease: "power3.inOut",
+        },
+        3.5,
+      );
+      tl.fromTo(
+        byId("lead"),
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        4.0,
+      );
+
+      tl.set({}, {}, 6.0);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[FRAME_ID] = tl;
+    })();
+  </script>
+</template>

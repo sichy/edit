@@ -1,0 +1,11 @@
+{
+  "name": "edit-launch",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.8.166 preview",
+    "check": "npx --yes hyperframes@0.8.166 check",
+    "render": "npx --yes hyperframes@0.8.166 render",
+    "publish": "npx --yes hyperframes@0.8.166 publish"
+  }
+}

@@ -1,0 +1,461 @@
+<template id="04-assistant-template">
+  <div data-hf-id="hf-3tyr"
+    id="root"
+    data-composition-id="04-assistant"
+    data-start="0"
+    data-duration="6.5"
+    data-width="1920"
+    data-height="1080"
+  >
+    <style>
+      @font-face {
+        font-family: "JetBrains Mono";
+        src: url("assets/fonts/JetBrainsMono-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        src: url("assets/fonts/JetBrainsMono-500.woff2") format("woff2");
+        font-weight: 500;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        src: url("assets/fonts/JetBrainsMono-800.woff2") format("woff2");
+        font-weight: 800;
+        font-style: normal;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      #root .\30 4-assistant-ground {
+        position: absolute;
+        inset: 0;
+        background: #1e1e1e;
+      }
+
+      #root .\30 4-assistant-world {
+        position: absolute;
+        inset: 0;
+        transform-origin: 1293px 495px;
+        container-type: size;
+      }
+
+      /* ---------- headline column ---------- */
+      #root .\30 4-assistant-copy {
+        position: absolute;
+        left: 120px;
+        top: 300px;
+        width: 560px;
+      }
+      #root .\30 4-assistant-rule {
+        width: 36px;
+        height: 2px;
+        background: #3b8eea;
+        margin-bottom: 22px;
+      }
+      #root .\30 4-assistant-kicker {
+        font-weight: 500;
+        font-size: 26px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #3b8eea;
+        line-height: 1;
+        margin-bottom: 30px;
+      }
+      #root .\30 4-assistant-h2 {
+        font-weight: 800;
+        font-size: 92px;
+        line-height: 0.98;
+        letter-spacing: -0.03em;
+        text-transform: lowercase;
+        color: #d4d4d4;
+      }
+      #root .\30 4-assistant-mask {
+        display: block;
+        overflow: hidden;
+        padding-bottom: 6px;
+      }
+      #root .\30 4-assistant-word {
+        display: block;
+      }
+      #root .\30 4-assistant-lead {
+        position: relative;
+        margin-top: 34px;
+        height: 45px;
+        font-weight: 400;
+        font-size: 30px;
+        line-height: 1.5;
+        color: #8e8e8e;
+        white-space: pre;
+      }
+      #root .\30 4-assistant-lead-token {
+        position: absolute;
+        left: 0;
+        top: 0;
+        visibility: hidden;
+      }
+      #root .\30 4-assistant-lead-mark {
+        color: #3b8eea;
+      }
+
+      /* ---------- composer card ---------- */
+      #root .\30 4-assistant-persp {
+        position: absolute;
+        left: 760px;
+        top: 200px;
+        width: 1066px;
+        height: 590px;
+        perspective: 2400px;
+        perspective-origin: 50% 50%;
+      }
+      #root .\30 4-assistant-tilt {
+        position: absolute;
+        inset: 0;
+        transform-style: preserve-3d;
+        transform-origin: 50% 50%;
+        transform: rotateY(-10deg) rotateX(6deg);
+      }
+      #root .\30 4-assistant-slab {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        width: 1066px;
+        height: 590px;
+        background: #141414;
+      }
+      #root .\30 4-assistant-face {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1066px;
+        height: 590px;
+        overflow: hidden;
+        background: #1e1e1e;
+        outline: 1px solid #484848;
+      }
+      /* source-pixel plane: the 820x454 crop, displayed at 1.3x */
+      #root .\30 4-assistant-plane {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 820px;
+        height: 454px;
+        overflow: hidden;
+        transform-origin: 0 0;
+        transform: scale(1.3);
+      }
+      #root .\30 4-assistant-shot {
+        position: absolute;
+        left: 0;
+        top: -1100px;
+        width: 2720px;
+        height: 1596px;
+        max-width: none;
+        visibility: hidden;
+      }
+      #root .\30 4-assistant-overlay {
+        position: absolute;
+        visibility: hidden;
+      }
+      #root .\30 4-assistant-chip-hole {
+        left: 80px;
+        top: 160px;
+        width: 220px;
+        height: 42px;
+        background: #383838;
+      }
+      #root .\30 4-assistant-chip-pop {
+        left: 80px;
+        top: 160px;
+        width: 220px;
+        height: 42px;
+        background-image: url("assets/chip.png");
+        background-size: 2720px 1596px;
+        background-position: -80px -1260px;
+        transform-origin: 50% 50%;
+      }
+      #root .\30 4-assistant-cover {
+        left: 80px;
+        width: 580px;
+        height: 42px;
+        background: #383838;
+        transform-origin: 100% 50%;
+      }
+      #root .\30 4-assistant-cover-1 {
+        top: 202px;
+      }
+      #root .\30 4-assistant-cover-2 {
+        top: 244px;
+      }
+      #root .\30 4-assistant-caret {
+        left: 80px;
+        top: 208px;
+        width: 2px;
+        height: 30px;
+        background: #d4d4d4;
+      }
+      #root .\30 4-assistant-send-cover {
+        left: 680px;
+        top: 286px;
+        width: 60px;
+        height: 42px;
+        background: #2d2d2d;
+        color: #5c5c5c;
+        font-weight: 500;
+        font-size: 22px;
+        line-height: 42px;
+        text-align: center;
+      }
+      #root .\30 4-assistant-send-hole {
+        left: 680px;
+        top: 286px;
+        width: 60px;
+        height: 42px;
+        background: #383838;
+      }
+      #root .\30 4-assistant-send-lit {
+        left: 680px;
+        top: 286px;
+        width: 60px;
+        height: 42px;
+        background-image: url("assets/chip.png");
+        background-size: 2720px 1596px;
+        background-position: -680px -1386px;
+        transform-origin: 50% 50%;
+      }
+    </style>
+
+    <div data-hf-id="hf-7g14"
+      class="04-assistant-ground clip"
+      data-start="0"
+      data-duration="6.5"
+      data-track-index="0"
+    ></div>
+
+    <div data-hf-id="hf-gbx0"
+      id="04-assistant-world"
+      class="04-assistant-world clip"
+      data-start="0"
+      data-duration="6.5"
+      data-track-index="1"
+    >
+      <div data-hf-id="hf-go8r" class="04-assistant-copy">
+        <div data-hf-id="hf-x9cu" class="04-assistant-rule"></div>
+        <div data-hf-id="hf-z37k" class="04-assistant-kicker">02 / assistant</div>
+        <div data-hf-id="hf-pe5a" class="04-assistant-h2">
+          <span data-hf-id="hf-dmif" class="04-assistant-mask"><span data-hf-id="hf-u5bk" id="04-assistant-w1" class="04-assistant-word">an</span></span>
+          <span data-hf-id="hf-4it3" class="04-assistant-mask"><span data-hf-id="hf-w7s0" id="04-assistant-w2" class="04-assistant-word">assistant</span></span>
+          <span data-hf-id="hf-44i2" class="04-assistant-mask"><span data-hf-id="hf-jm3i" id="04-assistant-w3" class="04-assistant-word">built in</span></span>
+        </div>
+        <div data-hf-id="hf-t9na" class="04-assistant-lead">
+          <span data-hf-id="hf-gtcz" id="04-assistant-lead-mode" class="04-assistant-lead-token"><span data-hf-id="hf-hfo2" class="04-assistant-lead-mark">/ </span>agent, ask or plan</span>
+          <span data-hf-id="hf-38f4" id="04-assistant-lead-model" class="04-assistant-lead-token"><span data-hf-id="hf-vweu" class="04-assistant-lead-mark">/ </span>pick your model</span>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-rgo0" class="04-assistant-persp">
+        <div data-hf-id="hf-25dl" class="04-assistant-tilt">
+          <div data-hf-id="hf-ozck" class="04-assistant-slab"></div>
+          <div data-hf-id="hf-s34f" class="04-assistant-face">
+            <div data-hf-id="hf-ranm" class="04-assistant-plane">
+              <img data-hf-id="hf-2g3v" id="04-assistant-shot-empty" class="04-assistant-shot" src="assets/empty.png" alt="" />
+              <img data-hf-id="hf-tkvj" id="04-assistant-shot-chip" class="04-assistant-shot" src="assets/chip.png" alt="" />
+              <img data-hf-id="hf-d2yq" id="04-assistant-shot-mode" class="04-assistant-shot" src="assets/chip-mode.png" alt="" />
+              <img data-hf-id="hf-boyk" id="04-assistant-shot-model" class="04-assistant-shot" src="assets/chip-model.png" alt="" />
+
+              <div data-hf-id="hf-pkf2" id="04-assistant-chip-hole" class="04-assistant-overlay 04-assistant-chip-hole"></div>
+              <div data-hf-id="hf-gufq" id="04-assistant-chip-pop" class="04-assistant-overlay 04-assistant-chip-pop"></div>
+              <div data-hf-id="hf-irnp" id="04-assistant-cover-1" class="04-assistant-overlay 04-assistant-cover 04-assistant-cover-1"></div>
+              <div data-hf-id="hf-cp29" id="04-assistant-cover-2" class="04-assistant-overlay 04-assistant-cover 04-assistant-cover-2"></div>
+              <div data-hf-id="hf-go5a" id="04-assistant-caret" class="04-assistant-overlay 04-assistant-caret"></div>
+              <div data-hf-id="hf-ia7x" id="04-assistant-send-cover" class="04-assistant-overlay 04-assistant-send-cover">&#8593;</div>
+              <div data-hf-id="hf-iz5y" id="04-assistant-send-hole" class="04-assistant-overlay 04-assistant-send-hole"></div>
+              <div data-hf-id="hf-n0zq" id="04-assistant-send-lit" class="04-assistant-overlay 04-assistant-send-lit"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        const FRAME_ID = "04-assistant";
+        const byId = (suffix) => document.getElementById(FRAME_ID + "-" + suffix);
+
+        const world = byId("world");
+        const shotEmpty = byId("shot-empty");
+        const shotChip = byId("shot-chip");
+        const shotMode = byId("shot-mode");
+        const shotModel = byId("shot-model");
+        const chipHole = byId("chip-hole");
+        const chipPop = byId("chip-pop");
+        const cover1 = byId("cover-1");
+        const cover2 = byId("cover-2");
+        const caret = byId("caret");
+        const sendCover = byId("send-cover");
+        const sendHole = byId("send-hole");
+        const sendLit = byId("send-lit");
+        const leadMode = byId("lead-mode");
+        const leadModel = byId("lead-model");
+
+        // Beat map (seconds)
+        const T_CHIP = 1.0;
+        const T_TYPE_START = 1.5;
+        const T_TYPE_END = 3.25;
+        const T_SEND = 3.5;
+        const T_MODE = 4.0;
+        const T_MODEL = 5.0;
+
+        // Prompt geometry in source px of the composer crop (20px per monospace char)
+        const CHAR_W = 20;
+        const TEXT_X = 80;
+        const TEXT_RIGHT = 660;
+        const LINE_1_CHARS = 29;
+        const LINE_2_CHARS = 27;
+        const CHAR_DUR = (T_TYPE_END - T_TYPE_START) / (LINE_1_CHARS + LINE_2_CHARS);
+        const T_LINE_2 = T_TYPE_START + LINE_1_CHARS * CHAR_DUR;
+        const LINE_1_CARET_Y = 208;
+        const LINE_2_CARET_Y = 250;
+
+        const BLINK_HALF = 0.3;
+        const CARET_IDLE_COLOR = "#3B8EEA";
+        const CARET_TYPING_COLOR = "#D4D4D4";
+
+        const SHOWN = { visibility: "visible" };
+        const HIDDEN = { visibility: "hidden" };
+        const chipStateOverlays = [chipHole, chipPop, cover1, cover2];
+
+        const tl = gsap.timeline({ paused: true });
+
+        // Hard-cut composer states, always on the beat
+        tl.set(shotEmpty, SHOWN, 0);
+        tl.set([shotChip, shotMode, shotModel], HIDDEN, 0);
+        tl.set(chipStateOverlays.concat([caret, sendCover, sendHole, sendLit]), HIDDEN, 0);
+        tl.set([leadMode, leadModel], HIDDEN, 0);
+
+        tl.set(shotEmpty, HIDDEN, T_CHIP);
+        tl.set(shotChip, SHOWN, T_CHIP);
+        tl.set(chipStateOverlays.concat([sendCover]), SHOWN, T_CHIP);
+
+        tl.set([sendCover], HIDDEN, T_SEND);
+        tl.set([sendHole, sendLit], SHOWN, T_SEND);
+
+        tl.set(shotChip, HIDDEN, T_MODE);
+        tl.set(shotMode, SHOWN, T_MODE);
+        tl.set(chipStateOverlays.concat([caret, sendHole, sendLit]), HIDDEN, T_MODE);
+        tl.set(leadMode, SHOWN, T_MODE);
+
+        tl.set(shotMode, HIDDEN, T_MODEL);
+        tl.set(shotModel, SHOWN, T_MODEL);
+        tl.set(leadMode, HIDDEN, T_MODEL);
+        tl.set(leadModel, SHOWN, T_MODEL);
+
+        // Scene 1 — camera push-in settles on the composer by 0.75s
+        tl.fromTo(world, { scale: 0.9 }, { scale: 1, duration: 0.75, ease: "expo.out" }, 0);
+
+        // Scene 1 — h2 reveals word group by word group
+        ["w1", "w2", "w3"].forEach((suffix, i) => {
+          tl.fromTo(
+            byId(suffix),
+            { yPercent: 105 },
+            { yPercent: 0, duration: 0.5, ease: "power3.out" },
+            0.25 + i * 0.25,
+          );
+        });
+
+        // Scene 2 — dock.rs chip spring-pops in
+        tl.fromTo(
+          chipPop,
+          { scale: 0.6, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+          T_CHIP,
+        );
+
+        // Scene 3 — the prompt types: covers step right one character at a time, caret leads
+        // Covers shrink toward their right edge (transform-origin 100%), so each step uncovers one character
+        const TEXT_WIDTH = TEXT_RIGHT - TEXT_X;
+        tl.set(cover2, { scaleX: 1 }, 0);
+        tl.fromTo(
+          cover1,
+          { scaleX: 1 },
+          {
+            scaleX: 0,
+            duration: LINE_1_CHARS * CHAR_DUR,
+            ease: "steps(" + LINE_1_CHARS + ")",
+          },
+          T_TYPE_START,
+        );
+        tl.fromTo(
+          cover2,
+          { scaleX: 1 },
+          {
+            scaleX: 1 - (LINE_2_CHARS * CHAR_W) / TEXT_WIDTH,
+            duration: LINE_2_CHARS * CHAR_DUR,
+            ease: "steps(" + LINE_2_CHARS + ")",
+            immediateRender: false,
+          },
+          T_LINE_2,
+        );
+        tl.fromTo(
+          caret,
+          { x: 0, y: 0 },
+          {
+            x: LINE_1_CHARS * CHAR_W,
+            duration: LINE_1_CHARS * CHAR_DUR,
+            ease: "steps(" + LINE_1_CHARS + ")",
+          },
+          T_TYPE_START,
+        );
+        tl.set(caret, { x: 0, y: LINE_2_CARET_Y - LINE_1_CARET_Y }, T_LINE_2);
+        tl.to(
+          caret,
+          {
+            x: LINE_2_CHARS * CHAR_W,
+            duration: LINE_2_CHARS * CHAR_DUR,
+            ease: "steps(" + LINE_2_CHARS + ")",
+          },
+          T_LINE_2,
+        );
+
+        // Caret: accent while idle, cream while typing; solid while typing, blinking when idle
+        tl.set(caret, { backgroundColor: CARET_IDLE_COLOR }, 0);
+        tl.set(caret, { backgroundColor: CARET_TYPING_COLOR }, T_TYPE_START);
+        tl.set(caret, { backgroundColor: CARET_IDLE_COLOR }, T_TYPE_END + 0.1);
+        const idleWindows = [
+          [T_CHIP, T_TYPE_START],
+          [T_TYPE_END + 0.1, T_MODE],
+        ];
+        idleWindows.forEach(([from, to]) => {
+          let on = true;
+          for (let t = from; t < to - 1e-6; t += BLINK_HALF) {
+            tl.set(caret, on ? SHOWN : HIDDEN, t);
+            on = !on;
+          }
+        });
+        tl.set(caret, SHOWN, T_TYPE_START);
+
+        // Scene 3 — send button lights and press-pops
+        tl.fromTo(sendLit, { scale: 1 }, { scale: 0.92, duration: 0.08, ease: "power2.in" }, T_SEND);
+        tl.to(sendLit, { scale: 1, duration: 0.35, ease: "power3.out" }, T_SEND + 0.08);
+
+        // Scene 3 — slow push toward the input under the typing, then locked to the end
+        tl.to(world, { scale: 1.025, duration: 2.0, ease: "sine.inOut" }, T_TYPE_START);
+
+        // Pin the timeline length to the frame duration
+        tl.set({}, {}, 6);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines[FRAME_ID] = tl;
+      })();
+    </script>
+  </div>
+</template>

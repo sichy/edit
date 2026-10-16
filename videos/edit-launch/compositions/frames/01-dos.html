@@ -1,0 +1,561 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "VT323";
+      src: url("assets/fonts/VT323-400.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("assets/fonts/JetBrainsMono-500.woff2") format("woff2");
+      font-weight: 500;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+    }
+
+    #\30 1-dos-bg {
+      position: absolute;
+      inset: 0;
+      background: #000;
+    }
+
+    /* The CRT tube: rounded glass mask, the power-off squash target */
+    #\30 1-dos-tv {
+      position: absolute;
+      inset: 0;
+      border-radius: 40px;
+      overflow: hidden;
+      background: #000;
+      transform-origin: 50% 50%;
+    }
+
+    #\30 1-dos-camera {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 50%;
+      will-change: transform;
+    }
+
+    /* 80x25 text grid: one cell = 24 x 43.2px */
+    .\30 1-dos-layer {
+      position: absolute;
+      inset: 0;
+      font-family: "VT323", monospace;
+      font-size: 48px;
+      line-height: 43.2px;
+      letter-spacing: 4.8px;
+      white-space: pre;
+    }
+    .\30 1-dos-menu {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 43.2px;
+      background: #aaaaaa;
+      color: #000;
+    }
+    .\30 1-dos-help {
+      position: absolute;
+      left: 1800px;
+      top: 0;
+    }
+    .\30 1-dos-win {
+      position: absolute;
+      left: 0;
+      top: 43.2px;
+      width: 1920px;
+      height: 993.6px;
+      background: #0000aa;
+    }
+    /* Double-line box drawn through the centers of cols 1/80 and rows 2/24 */
+    .\30 1-dos-border {
+      position: absolute;
+      left: 7.5px;
+      top: 60.3px;
+      width: 1905px;
+      height: 959.4px;
+      box-sizing: border-box;
+      border: 9px double #ffffff;
+      box-shadow:
+        0 0 10px rgba(255, 255, 255, 0.45),
+        inset 0 0 10px rgba(255, 255, 255, 0.35);
+    }
+    .\30 1-dos-title {
+      position: absolute;
+      left: 840px;
+      top: 43.2px;
+      height: 43.2px;
+      background: #aaaaaa;
+      color: #000;
+    }
+    .\30 1-dos-track {
+      position: absolute;
+      background: repeating-conic-gradient(#aaaaaa 0 25%, #000 0 50%) 0 0 / 6px 6px;
+    }
+    .\30 1-dos-vtrack {
+      left: 1896px;
+      top: 86.4px;
+      width: 24px;
+      height: 907.2px;
+    }
+    .\30 1-dos-htrack {
+      left: 24px;
+      top: 993.6px;
+      width: 1872px;
+      height: 43.2px;
+    }
+    .\30 1-dos-cell {
+      position: absolute;
+      width: 24px;
+      height: 43.2px;
+      background: #aaaaaa;
+    }
+    .\30 1-dos-thumb {
+      background: #000;
+    }
+    .\30 1-dos-arrow::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 12.6px;
+      width: 16px;
+      height: 18px;
+      background: #000;
+    }
+    .\30 1-dos-up::after {
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    }
+    .\30 1-dos-down::after {
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+    }
+    .\30 1-dos-left::after {
+      clip-path: polygon(0 50%, 100% 0, 100% 100%);
+    }
+    .\30 1-dos-right::after {
+      clip-path: polygon(0 0, 100% 50%, 0 100%);
+    }
+    .\30 1-dos-doc {
+      position: absolute;
+      left: 24px;
+      top: 86.4px;
+      height: 43.2px;
+      color: #ffffff;
+      text-shadow:
+        0 0 6px rgba(255, 255, 255, 0.6),
+        0 0 18px rgba(140, 180, 255, 0.4);
+    }
+    .\30 1-dos-status {
+      position: absolute;
+      left: 0;
+      top: 1036.8px;
+      width: 1920px;
+      height: 43.2px;
+      background: #00aaaa;
+      color: #000;
+    }
+    .\30 1-dos-sep {
+      position: absolute;
+      left: 1642.5px;
+      top: 0;
+      width: 3px;
+      height: 43.2px;
+      background: #000;
+    }
+    .\30 1-dos-pos {
+      position: absolute;
+      left: 1680px;
+      top: 0;
+    }
+    .\30 1-dos-menu,
+    .\30 1-dos-title,
+    .\30 1-dos-status {
+      text-shadow: 0 0 6px rgba(255, 255, 255, 0.35);
+    }
+    #\30 1-dos-caret {
+      position: absolute;
+      left: 24px;
+      top: 120.4px;
+      width: 24px;
+      height: 6px;
+      background: #ffffff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+    }
+
+    /* Glitch layers: slice copies and tinted RGB ghosts, driven per 1/12s step */
+    .\30 1-dos-slice {
+      visibility: hidden;
+      will-change: transform;
+    }
+    .\30 1-dos-ghost {
+      position: absolute;
+      inset: 0;
+      isolation: isolate;
+      mix-blend-mode: screen;
+      visibility: hidden;
+      will-change: transform;
+    }
+    .\30 1-dos-tint {
+      position: absolute;
+      inset: 0;
+      mix-blend-mode: multiply;
+    }
+
+    /* CRT glass */
+    .\30 1-dos-scanlines {
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0) 0,
+        rgba(0, 0, 0, 0) 2px,
+        rgba(0, 0, 0, 0.18) 2px,
+        rgba(0, 0, 0, 0.18) 3px
+      );
+    }
+    .\30 1-dos-vignette {
+      position: absolute;
+      inset: 0;
+      border-radius: 40px;
+      background: radial-gradient(
+        ellipse 75% 75% at 50% 50%,
+        rgba(0, 0, 0, 0) 62%,
+        rgba(0, 0, 0, 0.32) 85%,
+        rgba(0, 0, 0, 0.7) 100%
+      );
+      box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.55);
+    }
+    #\30 1-dos-flicker {
+      position: absolute;
+      inset: 0;
+      background: #ffffff;
+      opacity: 0;
+    }
+
+    #\30 1-dos-label {
+      position: absolute;
+      right: 96px;
+      top: 132px;
+      padding: 12px 18px 12px 24px;
+      background: #1e1e1e;
+      color: #3b8eea;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 500;
+      font-size: 34px;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: pre;
+    }
+
+    #\30 1-dos-flash {
+      position: absolute;
+      inset: 0;
+      background: #eaf2ff;
+      opacity: 0;
+    }
+
+    #\30 1-dos-crt-line {
+      position: absolute;
+      left: 0;
+      top: 538px;
+      width: 1920px;
+      height: 4px;
+      background: #eaf2ff;
+      box-shadow:
+        0 0 10px #3b8eea,
+        0 0 28px rgba(59, 142, 234, 0.65);
+    }
+  </style>
+
+  <div data-hf-id="hf-fg67" id="root" data-composition-id="01-dos" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-ltrc" id="01-dos-bg" class="clip" data-start="0" data-duration="4" data-track-index="0"></div>
+
+    <div data-hf-id="hf-ciis" id="01-dos-tv" class="clip" data-start="0" data-duration="4" data-track-index="1">
+      <div data-hf-id="hf-gm2v" id="01-dos-camera">
+        <div data-hf-id="hf-v92l" id="01-dos-screen" class="01-dos-layer" data-layout-allow-overlap>
+          <div data-hf-id="hf-b2ps" class="01-dos-menu">  File  Edit  Search  Options<span data-hf-id="hf-tzwg" class="01-dos-help">Help</span></div>
+          <div data-hf-id="hf-i135" class="01-dos-win"></div>
+          <div data-hf-id="hf-cb67" class="01-dos-border"></div>
+          <div data-hf-id="hf-arfw" class="01-dos-title"> Untitled </div>
+          <div data-hf-id="hf-f8s8" class="01-dos-track 01-dos-vtrack"></div>
+          <div data-hf-id="hf-4jg8" class="01-dos-cell 01-dos-arrow 01-dos-up" style="left: 1896px; top: 86.4px"></div>
+          <div data-hf-id="hf-vni1" class="01-dos-cell 01-dos-thumb" style="left: 1896px; top: 129.6px"></div>
+          <div data-hf-id="hf-63k1" class="01-dos-cell 01-dos-arrow 01-dos-down" style="left: 1896px; top: 950.4px"></div>
+          <div data-hf-id="hf-5lve" class="01-dos-track 01-dos-htrack"></div>
+          <div data-hf-id="hf-f1nt" class="01-dos-cell 01-dos-arrow 01-dos-left" style="left: 24px; top: 993.6px"></div>
+          <div data-hf-id="hf-7i8k" class="01-dos-cell 01-dos-thumb" style="left: 48px; top: 993.6px"></div>
+          <div data-hf-id="hf-sf1w" class="01-dos-cell 01-dos-arrow 01-dos-right" style="left: 1872px; top: 993.6px"></div>
+          <div data-hf-id="hf-ouil" id="01-dos-text" class="01-dos-doc"></div>
+          <div data-hf-id="hf-2iha" class="01-dos-status"> MS-DOS Editor  &lt;F1=Help&gt; Press ALT to activate menus<span data-hf-id="hf-4w12" class="01-dos-sep"></span><span data-hf-id="hf-yuov" id="01-dos-pos" class="01-dos-pos">00001:001</span></div>
+          <div data-hf-id="hf-hv5v" id="01-dos-caret"></div>
+        </div>
+        <div data-hf-id="hf-2hef" id="01-dos-slices"></div>
+        <div data-hf-id="hf-zo3m" id="01-dos-ghosts" data-layout-allow-overlap></div>
+      </div>
+      <div data-hf-id="hf-ozhv" class="01-dos-scanlines"></div>
+      <div data-hf-id="hf-j65r" class="01-dos-vignette"></div>
+      <div data-hf-id="hf-o3dm" id="01-dos-flicker"></div>
+      <div data-hf-id="hf-jti0" id="01-dos-label">1991</div>
+      <div data-hf-id="hf-wp9o" id="01-dos-flash"></div>
+    </div>
+
+    <div data-hf-id="hf-h77l" id="01-dos-crt-line" class="clip" data-start="3.85" data-duration="0.15" data-track-index="2"></div>
+  </div>
+
+  <script>
+    (function () {
+      const FRAME_ID = "01-dos";
+      const DURATION = 4;
+      const tl = gsap.timeline({ paused: true });
+
+      const byId = (id) => document.getElementById(`${FRAME_ID}-${id}`);
+      const tv = byId("tv");
+      const camera = byId("camera");
+      const screen = byId("screen");
+      const textEl = byId("text");
+      const posEl = byId("pos");
+      const caretEl = byId("caret");
+      const slicesEl = byId("slices");
+      const ghostsEl = byId("ghosts");
+      const flickerEl = byId("flicker");
+      const labelEl = byId("label");
+      const flashEl = byId("flash");
+      const crtLine = byId("crt-line");
+
+      const CELL_W = 24;
+      const TYPED_LINE = "REM the editor you grew up with";
+      const LABEL_TEXT = "1991";
+      const SCRAMBLE_GLYPHS = "0123456789#$%&@/<>";
+
+      const glitchHash = (n) => {
+        const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+        return x - Math.floor(x);
+      };
+
+      // --- Typing schedule: human cadence, first key at 0.5s, last key at 2.25s ---
+      const TYPE_START = 0.5;
+      const TYPE_END = 2.25;
+      const rawKeyTimes = [];
+      let elapsed = 0;
+      for (let i = 0; i < TYPED_LINE.length; i++) {
+        let gap = 0.05 + glitchHash(i * 3.7 + 1) * 0.05;
+        if (i > 0 && TYPED_LINE[i - 1] === " ") gap += 0.06;
+        if (TYPED_LINE[i] === " ") gap += 0.02;
+        elapsed += i === 0 ? 0 : gap;
+        rawKeyTimes.push(elapsed);
+      }
+      const keyScale = (TYPE_END - TYPE_START) / rawKeyTimes[rawKeyTimes.length - 1];
+      const KEY_TIMES = rawKeyTimes.map((t) => TYPE_START + t * keyScale);
+
+      const typedLengthAt = (t) => {
+        for (let i = KEY_TIMES.length - 1; i >= 0; i--) {
+          if (t >= KEY_TIMES[i]) return i + 1;
+        }
+        return 0;
+      };
+
+      const TYPING_GRACE = 0.18;
+      const BLINK_PERIOD = 0.3;
+      const caretVisibleAt = (t) => {
+        const isTyping = KEY_TIMES.some((k) => k <= t && t - k < TYPING_GRACE);
+        if (isTyping) return true;
+        const phase = t / BLINK_PERIOD;
+        return phase - Math.floor(phase) < 0.5;
+      };
+
+      const cursorPosition = (length) => `00001:${String(length + 1).padStart(3, "0")}`;
+
+      // --- Glitch envelope: hit at the 3.0s downbeat, peak at 3.5s, held into power-off ---
+      const GLITCH_START = 3.0;
+      const GLITCH_PEAK = 3.5;
+      const POWER_OFF_START = 3.75;
+      const JITTER_STEP = 1 / 12;
+      const glitchAmpAt = (t) => {
+        if (t < GLITCH_START) return 0;
+        if (t < GLITCH_PEAK) {
+          const p = (t - GLITCH_START) / (GLITCH_PEAK - GLITCH_START);
+          return 0.3 + 0.7 * Math.pow(p, 1.4);
+        }
+        return 1;
+      };
+
+      // --- Glitch layers: clones of the finished screen ---
+      const makeFinishedClone = () => {
+        const clone = screen.cloneNode(true);
+        clone.removeAttribute("id");
+        clone.querySelectorAll("[id]").forEach((el) => {
+          if (el.id === `${FRAME_ID}-caret`) el.remove();
+          else el.removeAttribute("id");
+        });
+        clone.getElementsByClassName(`${FRAME_ID}-doc`)[0].textContent = TYPED_LINE;
+        clone.getElementsByClassName(`${FRAME_ID}-pos`)[0].textContent = cursorPosition(TYPED_LINE.length);
+        return clone;
+      };
+
+      const SLICE_COUNT = 10;
+      const slices = [];
+      for (let i = 0; i < SLICE_COUNT; i++) {
+        const slice = makeFinishedClone();
+        slice.classList.add(`${FRAME_ID}-slice`);
+        slicesEl.appendChild(slice);
+        slices.push(slice);
+      }
+
+      const GHOST_TINTS = ["#ff0000", "#00ffff"];
+      const ghosts = GHOST_TINTS.map((tint) => {
+        const ghost = document.createElement("div");
+        ghost.className = `${FRAME_ID}-ghost`;
+        ghost.appendChild(makeFinishedClone());
+        const tintEl = document.createElement("div");
+        tintEl.className = `${FRAME_ID}-tint`;
+        tintEl.style.background = tint;
+        ghost.appendChild(tintEl);
+        ghostsEl.appendChild(ghost);
+        return ghost;
+      });
+
+      // --- One pure writer for all text / caret / glitch state ---
+      const renderState = (t) => {
+        const length = typedLengthAt(t);
+        textEl.textContent = TYPED_LINE.slice(0, length);
+        posEl.textContent = cursorPosition(length);
+        caretEl.style.left = `${CELL_W + length * CELL_W}px`;
+        caretEl.style.opacity = caretVisibleAt(t) ? "1" : "0";
+
+        const amp = glitchAmpAt(t);
+        const step = Math.floor(t / JITTER_STEP);
+        const live = amp > 0;
+
+        // RGB split: red/cyan copies offset ±6px at the hit, up to ±24px at the peak
+        ghosts.forEach((ghost, layer) => {
+          ghost.style.visibility = live ? "visible" : "hidden";
+          if (!live) {
+            ghost.style.transform = "none";
+            return;
+          }
+          const side = layer === 0 ? 1 : -1;
+          const flip = glitchHash(step * 13 + 5) > 0.5 ? 1 : -1;
+          const magnitude = (6 + 18 * amp) * (0.6 + 0.4 * glitchHash(step * 13 + layer * 7));
+          const jx = side * flip * magnitude;
+          const jy = (glitchHash(step * 29 + layer * 11) * 2 - 1) * magnitude * 0.25;
+          ghost.style.transform = `translate(${jx}px, ${jy}px)`;
+          ghost.style.opacity = String(0.5 + 0.3 * amp);
+        });
+
+        // Slice displacement: 6–10 bands re-roll on every 1/12s step
+        const activeSlices = 6 + Math.floor(glitchHash(step * 17 + 3) * 5);
+        slices.forEach((slice, i) => {
+          const active = live && i < activeSlices;
+          slice.style.visibility = active ? "visible" : "hidden";
+          if (!active) {
+            slice.style.transform = "none";
+            return;
+          }
+          const top = glitchHash(step * 31 + i * 7 + 1) * 94;
+          const height = 1.5 + glitchHash(step * 37 + i * 5 + 2) * 8;
+          const bottom = Math.max(0, 100 - top - height);
+          const dir = glitchHash(step * 41 + i * 3 + 4) > 0.5 ? 1 : -1;
+          const offset = dir * (14 + glitchHash(step * 43 + i * 9 + 6) * 106) * amp;
+          slice.style.clipPath = `inset(${top}% 0 ${bottom}% 0)`;
+          slice.style.transform = `translateX(${offset}px)`;
+        });
+
+        // Brightness flicker
+        if (live) {
+          const roll = glitchHash(step * 53 + 8);
+          const darken = roll > 0.72;
+          flickerEl.style.background = darken ? "#000000" : "#ffffff";
+          flickerEl.style.opacity = String((darken ? 0.35 : 0.22 * roll) * amp);
+        } else {
+          flickerEl.style.opacity = "0";
+        }
+
+        // "1991" label scrambles and splits
+        if (live) {
+          let scrambled = "";
+          for (let i = 0; i < LABEL_TEXT.length; i++) {
+            const swap = glitchHash(step * 61 + i * 13) < 0.3 + 0.6 * amp;
+            const glyph = SCRAMBLE_GLYPHS[Math.floor(glitchHash(step * 67 + i * 19) * SCRAMBLE_GLYPHS.length)];
+            scrambled += swap ? glyph : LABEL_TEXT[i];
+          }
+          labelEl.textContent = scrambled;
+          const split = (3 + 9 * amp) * (glitchHash(step * 71) > 0.5 ? 1 : -1);
+          labelEl.style.textShadow = `${split}px 0 #ff3b3b, ${-split}px 0 #00e5ff`;
+          labelEl.style.transform = `translateX(${(glitchHash(step * 73) * 2 - 1) * 14 * amp}px)`;
+        } else {
+          labelEl.textContent = LABEL_TEXT;
+          labelEl.style.textShadow = "none";
+          labelEl.style.transform = "none";
+        }
+      };
+
+      const driver = { t: 0 };
+      tl.to(
+        driver,
+        {
+          t: DURATION,
+          duration: DURATION,
+          ease: "none",
+          onUpdate: () => renderState(driver.t),
+        },
+        0,
+      );
+
+      // --- Camera: slow push-in 1.00 → 1.05 over 0–3s, micro-drift, glitch jolt ---
+      const phase = { scale: 1 };
+      tl.to(phase, { scale: 1.05, duration: 3, ease: "power1.inOut" }, 0);
+
+      const DRIFT_AMP_X = 3;
+      const DRIFT_AMP_Y = 2;
+      const DRIFT_FREQ_RATIO = 1.3;
+      const drift = { p: 0 };
+      const writeCamera = () => {
+        const t = drift.p / (Math.PI * 2) * DURATION;
+        const amp = glitchAmpAt(t);
+        const step = Math.floor(t / JITTER_STEP);
+        const joltX = amp > 0 ? (glitchHash(step * 83) * 2 - 1) * 10 * amp : 0;
+        const joltY = amp > 0 ? (glitchHash(step * 89) * 2 - 1) * 4 * amp : 0;
+        const dx = Math.sin(drift.p) * DRIFT_AMP_X + joltX;
+        const dy = Math.sin(drift.p * DRIFT_FREQ_RATIO) * DRIFT_AMP_Y + joltY;
+        camera.style.transform = `scale(${phase.scale}) translate(${dx}px, ${dy}px)`;
+      };
+      tl.to(drift, { p: Math.PI * 2, duration: DURATION, ease: "none", onUpdate: writeCamera }, 0);
+
+      // --- CRT power-off: squash to a bright line, then hand off the static line ---
+      const SQUASH_END = 3.9;
+      tl.fromTo(
+        tv,
+        { scaleY: 1 },
+        { scaleY: 0.004, duration: SQUASH_END - POWER_OFF_START, ease: "power3.in" },
+        POWER_OFF_START,
+      );
+      tl.fromTo(
+        flashEl,
+        { opacity: 0 },
+        { opacity: 0.95, duration: SQUASH_END - POWER_OFF_START - 0.02, ease: "power2.in" },
+        POWER_OFF_START,
+      );
+      tl.fromTo(crtLine, { opacity: 0 }, { opacity: 1, duration: 0.03, ease: "none" }, SQUASH_END - 0.03);
+      tl.fromTo(tv, { opacity: 1 }, { opacity: 0, duration: 0.02, ease: "none" }, SQUASH_END);
+      tl.set(crtLine, { opacity: 1, scaleX: 1 }, SQUASH_END + 0.02);
+
+      renderState(0);
+      writeCamera();
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[FRAME_ID] = tl;
+    })();
+  </script>
+</template>

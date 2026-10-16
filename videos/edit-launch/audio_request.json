@@ -1,0 +1,11 @@
+{
+  "provider": "auto",
+  "speed": "1.0",
+  "lines": [],
+  "bgm": {
+    "mode": "retrieve",
+    "query": "dark minimal electronic, driving 120 bpm, punchy kick, deep sub bass, glassy synth arpeggio, modern tech launch, confident",
+    "blob": "The editor you grew up with, rebuilt for how you work now.",
+    "arc": "Hook (1991) → Reveal (2026) → Docking → Assistant → New look → Launch"
+  }
+}

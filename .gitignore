@@ -9,3 +9,5 @@ target
 /crates/.DS_Store
 /crates/edit/.DS_Store
 /crates/lsh/.DS_Store
+/videos/.DS_Store
+/videos/edit-launch/renders/video.mp4
