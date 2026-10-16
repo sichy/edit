@@ -4,7 +4,6 @@
 //! AI Assistant window: a header with the chat title, the chat history with the newest
 //! message at the bottom, and the prompt composer below it.
 
-use edit::framebuffer::IndexedColor;
 use edit::helpers::*;
 use edit::input::vk;
 use edit::tui::*;
@@ -19,11 +18,11 @@ const HEADER_HEIGHT: CoordType = 1;
 const COMPOSER_CHROME_HEIGHT: CoordType = 3;
 /// The prompt grows with its contents up to this many lines, then scrolls.
 const PROMPT_MAX_LINES: CoordType = 6;
-const NEW_CHAT_LABEL: &str = "+ New";
-/// The width of [`NEW_CHAT_LABEL`] including the button's brackets.
+const NEW_CHAT_LABEL: &str = " + New ";
+/// The width of [`NEW_CHAT_LABEL`] including its padding.
 const NEW_CHAT_WIDTH: CoordType = 7;
-const SEND_LABEL: &str = "↑ Send";
-/// The width of [`SEND_LABEL`] including the button's brackets.
+const SEND_LABEL: &str = " ↑ Send ";
+/// The width of [`SEND_LABEL`] including its padding.
 const SEND_WIDTH: CoordType = 8;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -74,7 +73,7 @@ fn draw_header(ctx: &mut Context, state: &mut State, width: CoordType) {
     ctx.table_begin("header");
     ctx.table_set_cell_gap(Size { width: 1, height: 0 });
     ctx.attr_padding(Rect::two(0, 1));
-    ctx.attr_background_rgba(ctx.indexed_alpha(IndexedColor::BrightBlue, 1, 3));
+    ctx.attr_background_rgba(state.theme.chrome);
     {
         ctx.table_next_row();
 
@@ -82,12 +81,15 @@ fn draw_header(ctx: &mut Context, state: &mut State, width: CoordType) {
         let (title, title_len) = truncate(&format!("✦ {title}"), title_width.max(0) as usize);
         let padding = (title_width.max(0) as usize).saturating_sub(title_len);
         ctx.label("title", &format!("{title}{:padding$}", ""));
-        ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::BrightWhite));
+        ctx.attr_foreground_rgba(state.theme.text);
 
-        if has_button && ctx.button("new_chat", NEW_CHAT_LABEL, ButtonStyle::default()) {
+        if has_button
+            && ctx.button("new_chat", NEW_CHAT_LABEL, ButtonStyle::default().bracketed(false))
+        {
             state.ai_messages.clear();
             ctx.needs_rerender();
         }
+        ctx.attr_foreground_rgba(state.theme.text_dim);
     }
     ctx.table_end();
 }
@@ -108,13 +110,13 @@ fn draw_history(ctx: &mut Context, state: &mut State, size: Size) {
             ctx.label("empty", "Ask about your code, or anything else.");
             ctx.attr_padding(Rect::three(1, 1, 0));
             ctx.attr_overflow(Overflow::TruncateTail);
-            ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::BrightBlack));
+            ctx.attr_foreground_rgba(state.theme.text_dim);
         }
 
         // The scrollbar takes up the last column and each message has 1 column of margin per side.
         let text_width = size.width - 3;
-        let bubble = ctx.indexed_alpha(IndexedColor::BrightBlack, 1, 2);
-        let accent = ctx.indexed(IndexedColor::BrightBlue);
+        let bubble = state.theme.elevated;
+        let accent = state.theme.accent;
         for (index, message) in state.ai_messages.iter().enumerate() {
             ctx.next_block_id_mixin(index as u64);
             ctx.block_begin("message");
@@ -164,10 +166,10 @@ fn draw_composer(
         width: inner_width,
         height: prompt_lines + COMPOSER_CHROME_HEIGHT - 2,
     });
-    ctx.attr_background_rgba(ctx.indexed_alpha(IndexedColor::BrightBlack, 1, 4));
+    let theme = state.theme;
+    ctx.attr_background_rgba(theme.elevated);
     let focused = ctx.contains_focus();
-    let border = if focused { IndexedColor::BrightBlue } else { IndexedColor::BrightBlack };
-    ctx.attr_foreground_rgba(ctx.indexed(border));
+    ctx.attr_foreground_rgba(if focused { theme.accent } else { theme.border });
     {
         // The prompt is multi-line, so it would otherwise insert a newline on Enter
         // and swallow Escape. Alt+Enter still inserts a newline.
@@ -184,7 +186,7 @@ fn draw_composer(
             // The history above was sized for the old prompt height.
             ctx.needs_rerender();
         }
-        ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::Foreground));
+        ctx.attr_foreground_rgba(theme.text);
         ctx.attr_placeholder("Ask anything…");
         if grab_focus {
             ctx.steal_focus();
@@ -199,12 +201,17 @@ fn draw_composer(
             let (hint, hint_len) = truncate("Alt+⏎ new line", hint_width);
             let padding = hint_width.saturating_sub(hint_len);
             ctx.label("hint", &format!("{hint}{:padding$}", ""));
-            ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::BrightBlack));
+            ctx.attr_foreground_rgba(theme.text_dim);
 
-            send |= ctx.button("send", SEND_LABEL, ButtonStyle::default());
-            let send_color =
-                if has_text { IndexedColor::BrightBlue } else { IndexedColor::BrightBlack };
-            ctx.attr_foreground_rgba(ctx.indexed(send_color));
+            // The send button fills in with the accent once there's something to send.
+            send |= ctx.button("send", SEND_LABEL, ButtonStyle::default().bracketed(false));
+            if has_text {
+                ctx.attr_background_rgba(theme.accent);
+                ctx.attr_foreground_rgba(theme.on_accent);
+            } else {
+                ctx.attr_background_rgba(theme.chrome);
+                ctx.attr_foreground_rgba(theme.text_dim);
+            }
         }
         ctx.table_end();
 

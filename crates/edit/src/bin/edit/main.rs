@@ -17,6 +17,7 @@ mod localization;
 mod lsp;
 mod settings;
 mod state;
+mod theme;
 
 use std::path::Path;
 use std::time::Duration;
@@ -43,6 +44,7 @@ use state::*;
 use crate::completion::draw_completion_popup;
 use crate::dock::PanelId;
 use crate::settings::Settings;
+use crate::theme::Theme;
 
 #[cfg(target_pointer_width = "32")]
 const SCRATCH_ARENA_CAPACITY: usize = 128 * MEBI;
@@ -105,25 +107,13 @@ fn run() -> apperr::Result<()> {
 
     let _restore = setup_terminal(&mut tui, &mut state, &mut vt_parser);
 
-    state.menubar_color_bg = tui.indexed(IndexedColor::Background).oklab_blend(tui.indexed_alpha(
-        IndexedColor::BrightBlue,
-        1,
-        2,
-    ));
-    state.menubar_color_fg = tui.contrasted(state.menubar_color_bg);
-    let floater_bg = tui
-        .indexed_alpha(IndexedColor::Background, 2, 3)
-        .oklab_blend(tui.indexed_alpha(IndexedColor::Foreground, 1, 3));
-    let floater_fg = tui.contrasted(floater_bg);
+    state.theme = Theme::new(&tui);
+    state.theme.apply(&mut tui);
     tui.setup_modifier_translations(ModifierTranslations {
         ctrl: loc(LocId::Ctrl),
         alt: loc(LocId::Alt),
         shift: loc(LocId::Shift),
     });
-    tui.set_floater_default_bg(floater_bg);
-    tui.set_floater_default_fg(floater_fg);
-    tui.set_modal_default_bg(floater_bg);
-    tui.set_modal_default_fg(floater_fg);
 
     #[cfg(feature = "debug-latency")]
     let mut last_latency_width = 0;

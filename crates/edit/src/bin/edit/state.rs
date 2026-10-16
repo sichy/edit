@@ -8,7 +8,6 @@ use std::path::{Path, PathBuf};
 
 use edit::framebuffer::IndexedColor;
 use edit::helpers::*;
-use edit::oklab::StraightRgba;
 use edit::tui::*;
 use edit::{buffer, icu};
 
@@ -19,6 +18,7 @@ use crate::documents::DocumentManager;
 use crate::draw_ai_dock::ChatMessage;
 use crate::localization::*;
 use crate::lsp::LspManager;
+use crate::theme::Theme;
 
 #[repr(transparent)]
 pub struct FormatApperr(apperr::Error);
@@ -135,8 +135,8 @@ pub struct OscTitleFileStatus {
 }
 
 pub struct State {
-    pub menubar_color_bg: StraightRgba,
-    pub menubar_color_fg: StraightRgba,
+    /// Set up by `main()` once the terminal's palette is known.
+    pub theme: Theme,
 
     pub documents: DocumentManager,
     pub lsp: LspManager,
@@ -201,8 +201,7 @@ pub struct State {
 impl State {
     pub fn new() -> apperr::Result<Self> {
         Ok(Self {
-            menubar_color_bg: StraightRgba::zero(),
-            menubar_color_fg: StraightRgba::zero(),
+            theme: Theme::default(),
 
             documents: Default::default(),
             lsp: Default::default(),

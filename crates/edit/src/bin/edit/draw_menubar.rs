@@ -13,8 +13,8 @@ use crate::state::*;
 
 pub fn draw_menubar(ctx: &mut Context, state: &mut State) {
     ctx.menubar_begin();
-    ctx.attr_background_rgba(state.menubar_color_bg);
-    ctx.attr_foreground_rgba(state.menubar_color_fg);
+    ctx.attr_background_rgba(state.theme.chrome);
+    ctx.attr_foreground_rgba(state.theme.text);
     {
         let contains_focus = ctx.contains_focus();
 

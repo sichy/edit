@@ -14,11 +14,18 @@ use edit::tui::*;
 use crate::localization::*;
 use crate::state::*;
 
+/// Statusbar items read as plain text, not as `[buttons]`.
+fn item() -> ButtonStyle {
+    ButtonStyle::default().bracketed(false)
+}
+
 pub fn draw_statusbar(ctx: &mut Context, state: &mut State) {
+    let theme = state.theme;
+
     ctx.table_begin("statusbar");
     ctx.attr_focus_well();
-    ctx.attr_background_rgba(state.menubar_color_bg);
-    ctx.attr_foreground_rgba(state.menubar_color_fg);
+    ctx.attr_background_rgba(theme.chrome);
+    ctx.attr_foreground_rgba(theme.text_dim);
     ctx.table_set_cell_gap(Size { width: 2, height: 0 });
     ctx.attr_intrinsic_size(Size { width: COORD_TYPE_SAFE_MAX, height: 1 });
     ctx.attr_padding(Rect::two(0, 1));
@@ -28,23 +35,19 @@ pub fn draw_statusbar(ctx: &mut Context, state: &mut State) {
 
         ctx.table_next_row();
 
-        state.wants_language_picker |= ctx.button(
-            "language",
-            tb.language().map_or("Plain Text", |l| l.name),
-            ButtonStyle::default(),
-        );
+        state.wants_language_picker |=
+            ctx.button("language", tb.language().map_or("Plain Text", |l| l.name), item());
         if state.wants_statusbar_focus {
             state.wants_statusbar_focus = false;
             ctx.steal_focus();
         }
 
-        if ctx.button("newline", if tb.is_crlf() { "CRLF" } else { "LF" }, ButtonStyle::default()) {
+        if ctx.button("newline", if tb.is_crlf() { "CRLF" } else { "LF" }, item()) {
             let is_crlf = tb.is_crlf();
             tb.normalize_newlines(!is_crlf);
         }
 
-        state.wants_encoding_picker |=
-            ctx.button("encoding", tb.encoding(), ButtonStyle::default());
+        state.wants_encoding_picker |= ctx.button("encoding", tb.encoding(), item());
         if state.wants_encoding_picker {
             if doc.path.is_some() {
                 ctx.block_begin("frame");
@@ -90,7 +93,7 @@ pub fn draw_statusbar(ctx: &mut Context, state: &mut State) {
                 }),
                 tb.tab_size(),
             ),
-            ButtonStyle::default(),
+            item(),
         );
         if state.wants_indentation_picker {
             ctx.table_begin("indentation-picker");
@@ -159,7 +162,7 @@ pub fn draw_statusbar(ctx: &mut Context, state: &mut State) {
             "location",
             &arena_format!(
                 ctx.arena(),
-                "{}:{}",
+                "Ln {}, Col {}",
                 tb.cursor_logical_pos().y + 1,
                 tb.cursor_logical_pos().x + 1
             ),
@@ -171,7 +174,7 @@ pub fn draw_statusbar(ctx: &mut Context, state: &mut State) {
             &arena_format!(ctx.arena(), "{}/{}", tb.logical_line_count(), tb.visual_line_count(),),
         );
 
-        if tb.is_overtype() && ctx.button("overtype", "OVR", ButtonStyle::default()) {
+        if tb.is_overtype() && ctx.button("overtype", "OVR", item()) {
             tb.set_overtype(false);
             ctx.needs_rerender();
         }
@@ -184,7 +187,8 @@ pub fn draw_statusbar(ctx: &mut Context, state: &mut State) {
         }
 
         if tb.is_dirty() {
-            ctx.label("dirty", "*");
+            ctx.label("dirty", "●");
+            ctx.attr_foreground_rgba(theme.accent);
         }
 
         ctx.block_begin("filename-container");
@@ -199,7 +203,8 @@ pub fn draw_statusbar(ctx: &mut Context, state: &mut State) {
                 filename = &filename_buf;
             }
 
-            state.wants_go_to_file |= ctx.button("filename", filename, ButtonStyle::default());
+            state.wants_go_to_file |= ctx.button("filename", filename, item());
+            ctx.attr_foreground_rgba(theme.text);
             ctx.inherit_focus();
             ctx.attr_overflow(Overflow::TruncateMiddle);
             ctx.attr_position(Position::Right);

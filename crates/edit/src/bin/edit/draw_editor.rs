@@ -80,8 +80,8 @@ fn draw_search(ctx: &mut Context, state: &mut State) {
 
     ctx.block_begin("search");
     ctx.attr_focus_well();
-    ctx.attr_background_rgba(ctx.indexed(IndexedColor::White));
-    ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::Black));
+    ctx.attr_background_rgba(state.theme.elevated);
+    ctx.attr_foreground_rgba(state.theme.text);
     {
         if ctx.contains_focus() && ctx.consume_shortcut(vk::ESCAPE) {
             state.wants_search.kind = StateSearchKind::Hidden;

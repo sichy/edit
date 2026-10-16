@@ -114,6 +114,10 @@ pub struct Framebuffer {
     contrast_colors: [Cell<(StraightRgba, StraightRgba)>; CACHE_TABLE_SIZE],
     background_fill: StraightRgba,
     foreground_fill: StraightRgba,
+    /// Zero means [`IndexedColor::BrightBlack`]. See [`Framebuffer::set_scrollbar_colors`].
+    scrollbar_track: StraightRgba,
+    /// Zero means [`IndexedColor::BrightWhite`]. See [`Framebuffer::set_scrollbar_colors`].
+    scrollbar_thumb: StraightRgba,
 }
 
 impl Framebuffer {
@@ -132,7 +136,25 @@ impl Framebuffer {
                 CACHE_TABLE_SIZE],
             background_fill: DEFAULT_THEME[IndexedColor::Background as usize],
             foreground_fill: DEFAULT_THEME[IndexedColor::Foreground as usize],
+            scrollbar_track: StraightRgba::zero(),
+            scrollbar_thumb: StraightRgba::zero(),
         }
+    }
+
+    /// Sets the colors of the scrollbar track and thumb. Both must be opaque.
+    pub fn set_scrollbar_colors(&mut self, track: StraightRgba, thumb: StraightRgba) {
+        self.scrollbar_track = track;
+        self.scrollbar_thumb = thumb;
+    }
+
+    fn scrollbar_colors(&self) -> (StraightRgba, StraightRgba) {
+        let pick = |color: StraightRgba, fallback: IndexedColor| {
+            if color == StraightRgba::zero() { self.indexed(fallback) } else { color }
+        };
+        (
+            pick(self.scrollbar_track, IndexedColor::BrightBlack),
+            pick(self.scrollbar_thumb, IndexedColor::BrightWhite),
+        )
     }
 
     /// Sets the base color palette.
@@ -342,8 +364,9 @@ impl Framebuffer {
         let thumb_top = ((thumb_top + 7) / 8) as CoordType;
         let thumb_bottom = (thumb_bottom / 8) as CoordType;
 
-        self.blend_bg(track_clipped, self.indexed(IndexedColor::BrightBlack));
-        self.blend_fg(track_clipped, self.indexed(IndexedColor::BrightWhite));
+        let (track_color, thumb_color) = self.scrollbar_colors();
+        self.blend_bg(track_clipped, track_color);
+        self.blend_fg(track_clipped, thumb_color);
 
         // Draw the full blocks.
         for y in thumb_top..thumb_bottom {
@@ -367,8 +390,8 @@ impl Framebuffer {
                 right: track_clipped.right,
                 bottom: thumb_bottom + 1,
             };
-            self.blend_bg(rect, self.indexed(IndexedColor::BrightWhite));
-            self.blend_fg(rect, self.indexed(IndexedColor::BrightBlack));
+            self.blend_bg(rect, thumb_color);
+            self.blend_fg(rect, track_color);
         }
 
         ((thumb_height + 4) / 8) as CoordType

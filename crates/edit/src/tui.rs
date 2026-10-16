@@ -319,6 +319,9 @@ pub struct Tui {
     floater_default_fg: StraightRgba,
     modal_default_bg: StraightRgba,
     modal_default_fg: StraightRgba,
+    /// The background of selected list items and focused menu items.
+    /// Zero means [`IndexedColor::Green`].
+    highlight_bg: StraightRgba,
 
     /// Last known terminal size.
     ///
@@ -401,6 +404,7 @@ impl Tui {
             floater_default_fg: StraightRgba::zero(),
             modal_default_bg: StraightRgba::zero(),
             modal_default_fg: StraightRgba::zero(),
+            highlight_bg: StraightRgba::zero(),
 
             size: Size { width: 80, height: 24 },
             mouse_position: Point::MIN,
@@ -461,6 +465,26 @@ impl Tui {
     /// Set the default foreground color for modals.
     pub fn set_modal_default_fg(&mut self, color: StraightRgba) {
         self.modal_default_fg = color;
+    }
+
+    /// Set the background color of selected list items and focused menu items.
+    /// Their text gets a contrasting color.
+    pub fn set_highlight_bg(&mut self, color: StraightRgba) {
+        self.highlight_bg = color;
+    }
+
+    /// Set the colors of the scrollbar track and thumb.
+    pub fn set_scrollbar_colors(&mut self, track: StraightRgba, thumb: StraightRgba) {
+        self.framebuffer.set_scrollbar_colors(track, thumb);
+    }
+
+    fn highlight_colors(&self) -> (StraightRgba, StraightRgba) {
+        let bg = if self.highlight_bg == StraightRgba::zero() {
+            self.indexed(IndexedColor::Green)
+        } else {
+            self.highlight_bg
+        };
+        (bg, self.contrasted(bg))
     }
 
     /// If the TUI is currently running animations, etc.,
@@ -888,6 +912,8 @@ impl Tui {
             let [tl, tr, bl, br, h, v] = if node.attributes.border_double {
                 ['╔', '╗', '╚', '╝', '═', '║']
             } else {
+                // Rounded corners would look nicer, but many terminals take them from the font
+                // while drawing the lines themselves, so they don't line up.
                 ['┌', '┐', '└', '┘', '─', '│']
             };
             let inner_width = (outer_clipped.right - outer_clipped.left - 2) as usize;
@@ -1682,7 +1708,7 @@ impl<'a> Context<'a, '_> {
         ln.attributes.fg = self.tui.floater_default_fg;
     }
 
-    /// Gives the current node a border.
+    /// Gives the current node a single-line border (`┌─┐`).
     pub fn attr_border(&mut self) {
         let mut last_node = self.tree.last_node.borrow_mut();
         last_node.attributes.bordered = true;
@@ -3271,8 +3297,7 @@ impl<'a> Context<'a, '_> {
         if contains_focus {
             {
                 let mut node = selected_next.borrow_mut();
-                node.attributes.bg = self.indexed(IndexedColor::Green);
-                node.attributes.fg = self.contrasted(self.indexed(IndexedColor::Green));
+                (node.attributes.bg, node.attributes.fg) = self.tui.highlight_colors();
             }
             self.steal_focus_for(selected_next);
         }
@@ -3326,8 +3351,9 @@ impl<'a> Context<'a, '_> {
             self.attr_foreground_rgba(self.tui.floater_default_fg);
 
             if self.is_focused() {
-                self.attr_background_rgba(self.indexed(IndexedColor::Green));
-                self.attr_foreground_rgba(self.contrasted(self.indexed(IndexedColor::Green)));
+                let (bg, fg) = self.tui.highlight_colors();
+                self.attr_background_rgba(bg);
+                self.attr_foreground_rgba(fg);
             }
 
             self.next_block_id_mixin(mixin);
@@ -3380,8 +3406,9 @@ impl<'a> Context<'a, '_> {
         }
 
         if self.is_focused() {
-            self.attr_background_rgba(self.indexed(IndexedColor::Green));
-            self.attr_foreground_rgba(self.contrasted(self.indexed(IndexedColor::Green)));
+            let (bg, fg) = self.tui.highlight_colors();
+            self.attr_background_rgba(bg);
+            self.attr_foreground_rgba(fg);
         }
 
         let clicked =

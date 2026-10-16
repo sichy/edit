@@ -1,7 +1,6 @@
 // Copyright (c) Pavel Sich.
 // Licensed under the MIT License.
 
-use edit::framebuffer::IndexedColor;
 use edit::helpers::*;
 use edit::tui::*;
 
@@ -52,7 +51,7 @@ fn draw_single_tab(ctx: &mut Context, state: &mut State, tab_info: &TabInfo) {
     let mut tab_text = String::new();
     tab_text.push_str(&tab_info.filename);
     if tab_info.is_dirty {
-        tab_text.push('*');
+        tab_text.push_str(" ●");
     }
 
     tab_text = format!(" {} ", tab_text);
@@ -67,11 +66,12 @@ fn draw_single_tab(ctx: &mut Context, state: &mut State, tab_info: &TabInfo) {
     }
 
     // Style the active tab differently
+    let theme = state.theme;
     if tab_info.is_active {
-        ctx.attr_background_rgba(ctx.indexed(IndexedColor::BrightBlue));
-        ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::BrightWhite));
+        ctx.attr_background_rgba(theme.accent_soft);
+        ctx.attr_foreground_rgba(theme.text);
     } else {
-        ctx.attr_background_rgba(ctx.indexed(IndexedColor::BrightBlack));
-        ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::White));
+        ctx.attr_background_rgba(theme.chrome);
+        ctx.attr_foreground_rgba(theme.text_dim);
     }
 }

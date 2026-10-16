@@ -1,9 +1,8 @@
 // Copyright (c) Pavel Sich.
 // Licensed under the MIT License.
 
-//! Draws the windows laid out by [`crate::dock::WindowManager`] with Turbo Vision style frames.
+//! Draws the windows laid out by [`crate::dock::WindowManager`] with single-line frames.
 
-use edit::framebuffer::IndexedColor;
 use edit::helpers::*;
 use edit::oklab::StraightRgba;
 use edit::tui::*;
@@ -23,7 +22,7 @@ pub fn draw_windows(ctx: &mut Context, state: &mut State) {
         draw_window(ctx, state, frame);
     }
     if let Some(preview) = state.windows.preview() {
-        draw_drop_preview(ctx, preview);
+        draw_drop_preview(ctx, state, preview);
     }
 }
 
@@ -50,19 +49,21 @@ fn draw_window(ctx: &mut Context, state: &mut State, frame: Frame) {
     let grab_focus = state.windows.take_focus_request(frame.panel) && !has_focus;
     let active = has_focus || grab_focus;
 
-    if active {
-        ctx.attr_border_double();
-    } else {
-        ctx.attr_border();
-    }
-    let frame_color = frame_color(ctx, active);
+    let theme = state.theme;
+    let background = match frame.panel {
+        PanelId::Editor => theme.surface,
+        PanelId::Assistant | PanelId::Files => theme.panel,
+    };
+    let border = if active { theme.accent } else { theme.border };
+
+    ctx.attr_border();
     ctx.attr_intrinsic_size(inner);
-    ctx.attr_background_rgba(ctx.indexed(IndexedColor::Background));
-    ctx.attr_foreground_rgba(frame_color);
+    ctx.attr_background_rgba(background);
+    ctx.attr_foreground_rgba(border);
     {
         ctx.block_begin("content");
         ctx.attr_intrinsic_size(inner);
-        ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::Foreground));
+        ctx.attr_foreground_rgba(theme.text);
         match frame.panel {
             PanelId::Editor => draw_editor(ctx, state, inner, grab_focus),
             PanelId::Assistant => draw_ai_assistant(ctx, state, inner, grab_focus),
@@ -72,17 +73,22 @@ fn draw_window(ctx: &mut Context, state: &mut State, frame: Frame) {
     }
     ctx.block_end();
 
-    draw_title_bar(ctx, state, frame, frame_color);
+    draw_title_bar(ctx, state, frame, active, background, border);
 }
 
-fn frame_color(ctx: &Context, active: bool) -> StraightRgba {
-    ctx.indexed(if active { IndexedColor::BrightWhite } else { IndexedColor::BrightBlack })
-}
-
-/// The title, the `[■]` and `[↑]` buttons and the `◢` grip are drawn on top of the frame.
-fn draw_title_bar(ctx: &mut Context, state: &State, frame: Frame, color: StraightRgba) {
+/// The title, the close and zoom buttons and the `◢` grip are drawn on top of the frame.
+/// The active window's title is an accent colored pill, the others are dimmed.
+fn draw_title_bar(
+    ctx: &mut Context,
+    state: &State,
+    frame: Frame,
+    active: bool,
+    background: StraightRgba,
+    border: StraightRgba,
+) {
+    let theme = state.theme;
     let rect = frame.rect;
-    let decoration = |ctx: &mut Context, classname: &'static str, x, y, text: &str| {
+    let decoration = |ctx: &mut Context, classname: &'static str, x, y, text: &str, bg, fg| {
         ctx.next_block_id_mixin(frame.panel as u64);
         ctx.block_begin(classname);
         ctx.attr_float(FloatSpec {
@@ -91,31 +97,36 @@ fn draw_title_bar(ctx: &mut Context, state: &State, frame: Frame, color: Straigh
             offset_y: y as f32,
             ..Default::default()
         });
-        ctx.attr_background_rgba(ctx.indexed(IndexedColor::Background));
-        ctx.attr_foreground_rgba(color);
+        ctx.attr_background_rgba(bg);
+        ctx.attr_foreground_rgba(fg);
         ctx.label("text", text);
         ctx.block_end();
     };
 
-    // Leave room for the buttons and the frame corners on both sides.
-    let max_title_width = rect.width() - 14;
+    let close = frame.close_button();
+    // The title follows the close button, separated by one stroke of the frame.
+    let title_left = close.map_or(rect.left + 2, |r| r.right + 1);
+    // Leave room for the zoom button and the frame corner on the right.
+    let max_title_width = rect.right - 6 - title_left - 2;
     if max_title_width > 0 {
         let title = window_title(state, frame.panel);
-        let (title, width) = truncate(&title, max_title_width as usize);
+        let (title, _) = truncate(&title, max_title_width as usize);
+        let (bg, fg) =
+            if active { (theme.accent, theme.on_accent) } else { (background, theme.text_dim) };
         let text = format!(" {title} ");
-        let width = width as CoordType + 2;
-        decoration(ctx, "title", rect.left + (rect.width() - width) / 2, rect.top, &text);
+        decoration(ctx, "title", title_left, rect.top, &text, bg, fg);
     }
 
-    if let Some(r) = frame.close_button() {
-        decoration(ctx, "close", r.left, r.top, "[■]");
+    let button_fg = if active { theme.text } else { theme.text_dim };
+    if let Some(r) = close {
+        decoration(ctx, "close", r.left, r.top, " ✕ ", background, button_fg);
     }
     if let Some(r) = frame.zoom_button() {
-        let icon = if state.windows.is_zoomed(frame.panel) { "[↕]" } else { "[↑]" };
-        decoration(ctx, "zoom", r.left, r.top, icon);
+        let icon = if state.windows.is_zoomed(frame.panel) { " ↕ " } else { " ↑ " };
+        decoration(ctx, "zoom", r.left, r.top, icon, background, button_fg);
     }
     if frame.floating {
-        decoration(ctx, "grip", rect.right - 1, rect.bottom - 1, "◢");
+        decoration(ctx, "grip", rect.right - 1, rect.bottom - 1, "◢", background, border);
     }
 }
 
@@ -125,7 +136,7 @@ fn window_title(state: &State, panel: PanelId) -> String {
     }
     match panel {
         PanelId::Editor => match state.documents.active() {
-            Some(doc) if doc.buffer.borrow().is_dirty() => format!("{} *", doc.filename),
+            Some(doc) if doc.buffer.borrow().is_dirty() => format!("{} ●", doc.filename),
             Some(doc) => doc.filename.clone(),
             None => "Editor".to_string(),
         },
@@ -152,7 +163,7 @@ pub fn truncate(text: &str, max_width: usize) -> (String, usize) {
 }
 
 /// Shows where a dragged window would end up if it was dropped now.
-fn draw_drop_preview(ctx: &mut Context, rect: Rect) {
+fn draw_drop_preview(ctx: &mut Context, state: &State, rect: Rect) {
     if rect.width() < 3 || rect.height() < 3 {
         return;
     }
@@ -163,10 +174,10 @@ fn draw_drop_preview(ctx: &mut Context, rect: Rect) {
         offset_y: rect.top as f32,
         ..Default::default()
     });
-    ctx.attr_border_double();
+    ctx.attr_border();
     ctx.attr_intrinsic_size(Size { width: rect.width() - 2, height: rect.height() - 2 });
-    ctx.attr_background_rgba(ctx.indexed_alpha(IndexedColor::BrightBlue, 1, 2));
-    ctx.attr_foreground_rgba(ctx.indexed(IndexedColor::BrightWhite));
+    ctx.attr_background_rgba(state.theme.accent_soft);
+    ctx.attr_foreground_rgba(state.theme.accent);
     ctx.block_end();
 }
 

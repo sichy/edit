@@ -53,8 +53,8 @@ const SYNTAX_COLOR_FUNCTION: StraightRgba = StraightRgba::from_rgba(0xb3c275ff);
 
 /// The margin template is used for line numbers.
 /// The max. line number we should ever expect is probably 64-bit,
-/// and so this template fits 19 digits, followed by " │ ".
-const MARGIN_TEMPLATE: &[u8] = "                    │ ".as_bytes();
+/// and so this template fits 19 digits, followed by 3 columns of spacing.
+const MARGIN_TEMPLATE: &[u8] = "                      ".as_bytes();
 /// Just a bunch of whitespace you can use for turning tabs into spaces.
 /// Happens to reuse MARGIN_TEMPLATE, because it has sufficient whitespace.
 const TAB_WHITESPACE: &[u8] = MARGIN_TEMPLATE;
@@ -1883,11 +1883,11 @@ impl TextBuffer {
                     unsafe { std::hint::assert_unchecked(off < MARGIN_TEMPLATE.len()) };
                     line.extend_from_slice(&*scratch, &MARGIN_TEMPLATE[off..]);
                 } else if self.word_wrap_column <= 0 || cursor_beg.logical_pos.x == 0 {
-                    // Regular line? Place "123 | " in the margin.
+                    // Regular line? Place "123   " in the margin.
                     arena_write_fmt!(
                         &*scratch,
                         line,
-                        "{:1$} │ ",
+                        "{:1$}   ",
                         cursor_beg.logical_pos.y + 1,
                         line_number_width
                     );
@@ -1897,7 +1897,7 @@ impl TextBuffer {
                     arena_write_fmt!(
                         &*scratch,
                         line,
-                        "{0:1$}{0:∙<2$} │ ",
+                        "{0:1$}{0:∙<2$}   ",
                         "",
                         line_number_width - number_width,
                         number_width
@@ -1959,17 +1959,14 @@ impl TextBuffer {
                     bottom: top + 1,
                 };
 
-                let mut bg = fb.indexed(IndexedColor::Foreground).oklab_blend(fb.indexed_alpha(
-                    IndexedColor::BrightBlue,
-                    1,
-                    2,
-                ));
-                if !focused {
-                    bg = bg.oklab_blend(fb.indexed_alpha(IndexedColor::Background, 1, 2));
+                // A tint of the accent color, so that the syntax highlighting stays readable.
+                let tint = if focused {
+                    fb.indexed_alpha(IndexedColor::BrightBlue, 2, 5)
+                } else {
+                    fb.indexed_alpha(IndexedColor::Foreground, 1, 6)
                 };
-                let fg = fb.contrasted(bg);
+                let bg = fb.indexed(IndexedColor::Background).oklab_blend(tint);
                 fb.blend_bg(rect, bg);
-                fb.blend_fg(rect, fg);
             }
 
             // Nothing to do if the entire line is empty.
@@ -2080,7 +2077,14 @@ impl TextBuffer {
                 right: destination.left + self.margin_width,
                 bottom: destination.bottom,
             };
-            fb.blend_fg(margin, StraightRgba::from_rgba(0x7f7f7f7f));
+            fb.blend_fg(margin, fb.indexed_alpha(IndexedColor::Background, 1, 2));
+
+            // The number of the line the cursor is on stands out.
+            let y = destination.top + self.cursor.visual_pos.y - origin.y;
+            if (destination.top..destination.bottom).contains(&y) {
+                let row = Rect { top: y, bottom: y + 1, ..margin };
+                fb.blend_fg(row, fb.indexed(IndexedColor::Foreground));
+            }
         }
 
         if self.ruler > 0 {
@@ -2128,7 +2132,7 @@ impl TextBuffer {
                             right: destination.right,
                             bottom: cursor.y + 1,
                         },
-                        StraightRgba::from_rgba(0x7f7f7f7f),
+                        fb.indexed_alpha(IndexedColor::Foreground, 1, 10),
                     );
                 }
             }

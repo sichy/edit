@@ -4,6 +4,7 @@
 use std::cmp::Ordering;
 use std::fs;
 
+use edit::framebuffer::Attributes;
 use edit::helpers::*;
 use edit::icu;
 use edit::input::{kbmod, vk};
@@ -11,6 +12,7 @@ use edit::tui::*;
 
 use crate::dock::PanelId;
 use crate::state::*;
+use crate::theme::Theme;
 
 /// Draws the directory listing into a window of the given inner `size`.
 pub fn draw_folder_browser(ctx: &mut Context, state: &mut State, size: Size, grab_focus: bool) {
@@ -35,7 +37,8 @@ pub fn draw_folder_browser(ctx: &mut Context, state: &mut State, size: Size, gra
             for entries in dirs_files {
                 for entry in entries {
                     let is_selected = state.folder_browser_selected == current_item_index;
-                    match ctx.list_item(is_selected, entry.as_str()) {
+                    draw_entry_label(ctx, &state.theme, entry.as_str(), is_selected);
+                    match ctx.styled_list_item_end(is_selected) {
                         ListSelection::Unchanged => {}
                         ListSelection::Selected => {
                             state.folder_browser_selected = current_item_index;
@@ -76,6 +79,19 @@ pub fn draw_folder_browser(ctx: &mut Context, state: &mut State, size: Size, gra
         }
     }
     ctx.scrollarea_end();
+}
+
+/// Folders are bold, so that they stand apart from files. Hidden entries are dimmed.
+/// The selected entry keeps the list's highlight colors so that it stays readable.
+fn draw_entry_label(ctx: &mut Context, theme: &Theme, name: &str, is_selected: bool) {
+    ctx.styled_list_item_begin();
+    if name.ends_with('/') {
+        ctx.styled_label_set_attributes(Attributes::Bold);
+    }
+    if !is_selected && name.starts_with('.') && name != ".." {
+        ctx.styled_label_set_foreground(theme.text_dim);
+    }
+    ctx.styled_label_add_text(name);
 }
 
 // Returns Some(path) if the path refers to a file
